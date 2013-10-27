@@ -4,4 +4,6 @@
 <file name="changeconf.php" server="rxse.co//var/www/webroot/ask/" local="130241012195667298" remote="130241012070000000" Dst="2" />
 <file name="logout.php" server="rxse.co//var/www/webroot/ask/" local="130221878120000000" remote="130221878120000000" Dst="2" />
 <file name="test.php" server="rxse.co//var/www/webroot/ask/" local="130248524919021060" remote="130248524730000000" Dst="2" />
+<file name="notify.php" server="rxse.co//var/www/webroot/hp/" local="130273747761895162" remote="130273747730000000" Dst="2" />
+<file name="changeconf.php" server="rxse.co//var/www/webroot/hp/" local="130273870029316421" remote="130273870170000000" Dst="2" />
 </dwsync>

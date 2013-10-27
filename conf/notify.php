@@ -52,6 +52,54 @@ if(class_exists(CONFIG)){
 			//header("location: $url");
 		}
 	}
+	elseif(isset($_REQUEST['method']) && isset($_REQUEST['artistid'])){
+		LOG::info(__FILE__." Line[".__LINE__."]"." notify script: in hp");
+		$md = CONFIG::escape_query($_REQUEST['method']);
+		$artistid = CONFIG::escape_query($_REQUEST['artistid']);
+		
+		if($md == "hp"){
+			$conf = new CONFIG;
+			$resp = $conf->sendToHP($artistid);
+			if($resp){
+				
+				$_SESSION['response'] = "success";
+			}
+			else{
+				$_SESSION['response'] = "failed";
+			}
+			LOG::info(__FILE__." Line[".__LINE__."]"." notify script resp: ".$resp);
+		}
+		else{
+			
+			LOG::error(__FILE__." Line[".__LINE__."]"." SCRIPT attempt to access a script without proper post");
+			$url = $root.CONFIG::$SCRIPTS.CONFIG::$LGOUTSCRIPT;
+			//header("location: $url");
+		}
+	}
+	elseif(isset($_REQUEST['method']) && isset($_REQUEST['albumid'])){
+		LOG::info(__FILE__." Line[".__LINE__."]"." notify script: in hp");
+		$md = CONFIG::escape_query($_REQUEST['method']);
+		$albumid = CONFIG::escape_query($_REQUEST['albumid']);
+		
+		if($md == "hp"){
+			$conf = new CONFIG;
+			$resp = $conf->sendToHPAlb($albumid);
+			if($resp){
+				
+				$_SESSION['response'] = "success";
+			}
+			else{
+				$_SESSION['response'] = "failed";
+			}
+			LOG::info(__FILE__." Line[".__LINE__."]"." notify script resp: ".$resp);
+		}
+		else{
+			
+			LOG::error(__FILE__." Line[".__LINE__."]"." SCRIPT attempt to access a script without proper post");
+			$url = $root.CONFIG::$SCRIPTS.CONFIG::$LGOUTSCRIPT;
+			//header("location: $url");
+		}
+	}
 	else{
 		LOG::error(__FILE__." Line[".__LINE__."]"." AUTH|SCRIPT attempt to access a script without permission");
 		$url = $root.CONFIG::$SCRIPTS.CONFIG::$LGOUTSCRIPT;

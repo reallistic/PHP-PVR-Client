@@ -26,42 +26,51 @@ if(class_exists(CONFIG)){
 	if($query === true){					 
 		// search for an artist
 		$lastfmRes = array();
+		$conf= new CONFIG;
+		$hp=$conf->getHP();
+		$email = $conf->getEmail();
+		$lastfmapikey=$conf->getLastfmApiKey();
 		if($q["artist"] != "" && $q["album"] == ""){
-			$apikey="b0f93f5384aa9fe79f9297f6767555c7";
-			$cmd = "findArtist&name=".$q["artist"];
-			$curl = curl_init();
-			curl_setopt_array($curl, array(
-				CURLOPT_RETURNTRANSFER => 1,
-				CURLOPT_URL => "http://localhost:8181/api?apikey=$apikey&cmd=$cmd",
-				CURLOPT_USERAGENT => 'Codular Sample cURL Request'
-			));
-			// Send the request & save response to $resp
-			$results = curl_exec($curl);
-			// Close request to clear up some resources
-			curl_close($curl);
+			$cmd = "findArtist&name=".urlencode($q["artist"]);
+			if($hp["https"] === true){
+				$getArtistUrl = "https://";
+			}
+			else{
+				$getArtistUrl = "http://";
+			}
+			$getArtistUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
+			$ch = curl_init($getArtistUrl);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_HEADER, 0);
+			$results = curl_exec($ch);
+			curl_close($ch);
 			$results = json_decode($results);
-			
 			foreach($results as $resultObj) {
-				$apikey=CONFIG::$HPAPI;
+				if(intval($resultObj->score) <75){
+					continue;
+				}
 				$cmd = "getArtist&id=".$resultObj->id;
-				$curl = curl_init();
-				$getAlbumsUrl = "http://localhost:8181/api?apikey=$apikey&cmd=$cmd";
-				curl_setopt_array($curl, array(
-					CURLOPT_RETURNTRANSFER => 1,
-					CURLOPT_URL => $getAlbumsUrl,
-					CURLOPT_USERAGENT => 'Codular Sample cURL Request'
-				));
-				// Send the request & save response to $resp
-				$artistinfo = curl_exec($curl);
-				// Close request to clear up some resources
-				curl_close($curl);
+				if($hp["https"] === true){
+					$getAlbumsUrl = "https://";
+				}
+				else{
+					$getAlbumsUrl = "http://";
+				}
+				$getAlbumsUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
+				$ch = curl_init($getAlbumsUrl);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_HEADER, 0);
+				$artistinfo = curl_exec($ch);
+				curl_close($ch);
 				$artistinfo = json_decode($artistinfo);
+				
 				if(count($artistinfo->artist) > 0){
 					$artist = $artistinfo->artist[0];
 					$albums = $artistinfo->albums;
 					$added = true;
 					$lfmr = new MBRESULT($artist->ArtistName, $added);
 					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
+					$lfmr->setScore($resultObj->score);
 					$lfmr->setArtistImg($artist->ThumbURL);
 					$lfmr->setName($artist->ArtistName);
 					$lfmr->setArtistId($resultObj->id);
@@ -71,7 +80,6 @@ if(class_exists(CONFIG)){
 				}
 				else{
 					$added = false;
-					$lastfmapikey=CONFIG::$LASTFMAPI;
 					$cmd = "artist.getinfo&mbid=".$resultObj->id;
 					$curl = curl_init();
 					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
@@ -98,43 +106,191 @@ if(class_exists(CONFIG)){
 					// Close request to clear up some resources
 					curl_close($curl);
 					$albums = json_decode($artistinfo)->topalbums->album;
-					
 					$lfmr = new MBRESULT($artist->name, $added);
 					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
+					$lfmr->setScore($resultObj->score);
 					$lfmr->setArtistImg($artist->image[3]->{'#text'});
 					$lfmr->setName($artist->name);
 					$lfmr->setArtistId($resultObj->id);
 					foreach ($albums as $album){
-						$lfmr->addAlbum($album->name, "Skipped", $album->image[3]->{'#text'}, $album->mbid);
+						if($album->mbid != ""){						
+							$lfmr->addAlbum($album->name, "Skipped", $album->image[3]->{'#text'}, $album->mbid);
+						}
 					}
 				}
-				if(count($albums) >0){
+				if(count($lfmr->getAlbums())>0){
 			 		array_push($lastfmRes, $lfmr);
 				}
 			}
 		}
 		else if($q["album"] != "" && $q["artist"] == ""){
-			$results = Album::search($q["album"], 5);
-			while ($album = $results->current()) {
-				$lfmr = new LASTFMRESULT($album->getArtist());
-				$lfmr->addAlbum($album->getName(), false, $album->getImage(4));
-				$artist = Artist::getInfo($album->getArtist());
-				$lfmr->setArtistImg($artist->getImage(4));
-				$lfmr->setUrl($album->getUrl());
-				$lfmr->setName($album->getName());
-				array_push($lastfmRes, $lfmr);			 	
-				$album = $results->next();
+			$cmd = "findAlbum&name=".urlencode($q["album"]);
+			if($hp["https"] === true){
+				$getArtistUrl = "https://";
+			}
+			else{
+				$getArtistUrl = "http://";
+			}
+			$getArtistUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
+			$ch = curl_init($getArtistUrl);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_HEADER, 0);
+			$results = curl_exec($ch);
+			curl_close($ch);
+			$results = json_decode($results);
+			foreach($results as $resultObj) {
+				
+				if(intval($resultObj->score) <80){
+					continue;
+				}
+				$cmd = "getAlbum&id=".$resultObj->albumid;
+				if($hp["https"] === true){
+					$getAlbumsUrl = "https://";
+				}
+				else{
+					$getAlbumsUrl = "http://";
+				}
+				$getAlbumsUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
+				$ch = curl_init($getAlbumsUrl);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_HEADER, 0);
+				$artistinfo = curl_exec($ch);
+				curl_close($ch);
+				$artistinfo = json_decode($artistinfo);
+				
+				if(count($artistinfo->album) > 0){
+					$album = $artistinfo->album[0];
+					$added = true;
+					$lfmr = new MBRESULT($album->ArtistName, $added);
+					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
+					$lfmr->setScore($resultObj->score);
+					$lfmr->setArtistImg($artist->ThumbURL);
+					$lfmr->setName($album->ArtistName);
+					$lfmr->setArtistId($resultObj->id);
+					$lfmr->addAlbum($album->AlbumTitle, $album->Status, $album->ThumbURL, $album->AlbumID);
+				}
+				else{
+					$added = false;
+					$cmd = "album.getinfo&mbid=".$resultObj->albumid;
+					$curl = curl_init();
+					$getAlbumInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
+					curl_setopt_array($curl, array(
+						CURLOPT_RETURNTRANSFER => 1,
+						CURLOPT_URL => $getAlbumInfo,
+						CURLOPT_USERAGENT => 'Codular Sample cURL Request'
+					));
+					// Send the request & save response to $resp
+					$albuminfo = curl_exec($curl);
+					// Close request to clear up some resources
+					curl_close($curl);
+					$album = json_decode($albuminfo)->album;
+					$lfmr = new MBRESULT($album->artist, $added);
+					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
+					$lfmr->setScore($resultObj->score);
+					$lfmr->setArtistImg($album->image[3]->{'#text'});
+					$lfmr->setName($album->artist);
+					$lfmr->setArtistId($resultObj->id);					
+					$lfmr->addAlbum($album->name, "Skipped", $album->image[3]->{'#text'}, $album->mbid);
+				}
+				if(count($lfmr->getAlbums())>0){
+			 		array_push($lastfmRes, $lfmr);
+				}
 			}
 		}
 		else{
-			$album = Album::getInfo($q["artist"],$q["album"]);
-			$lfmr = new LASTFMRESULT($album->getArtist());
-			$lfmr->addAlbum($album->getName(), false, $album->getImage(4));
-			$lfmr->setUrl($album->getUrl());
-			$lfmr->setName($album->getName());
-			$artist = Artist::getInfo($album->getArtist());
-			$lfmr->setArtistImg($artist->getImage(4));
-			array_push($lastfmRes, $lfmr);
+			$cmd = "findArtist&name=".urlencode($q["artist"]);
+			if($hp["https"] === true){
+				$getArtistUrl = "https://";
+			}
+			else{
+				$getArtistUrl = "http://";
+			}
+			$getArtistUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
+			$ch = curl_init($getArtistUrl);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_HEADER, 0);
+			$results = curl_exec($ch);
+			curl_close($ch);
+			$results = json_decode($results);
+			foreach($results as $resultObj) {
+				if(intval($resultObj->score) <75){
+					continue;
+				}
+				$cmd = "getArtist&id=".$resultObj->id;
+				if($hp["https"] === true){
+					$getAlbumsUrl = "https://";
+				}
+				else{
+					$getAlbumsUrl = "http://";
+				}
+				$getAlbumsUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
+				$ch = curl_init($getAlbumsUrl);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_HEADER, 0);
+				$artistinfo = curl_exec($ch);
+				curl_close($ch);
+				$artistinfo = json_decode($artistinfo);
+				
+				if(count($artistinfo->artist) > 0){
+					$artist = $artistinfo->artist[0];
+					$albums = $artistinfo->albums;
+					$added = true;
+					$lfmr = new MBRESULT($artist->ArtistName, $added);
+					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
+					$lfmr->setScore($resultObj->score);
+					$lfmr->setArtistImg($artist->ThumbURL);
+					$lfmr->setName($artist->ArtistName);
+					$lfmr->setArtistId($resultObj->id);
+					foreach ($albums as $album){
+						if(strpos(strtolower($album->AlbumTitle),strtolower($q["album"])) !== false){
+							$lfmr->addAlbum($album->AlbumTitle, $album->Status, $album->ThumbURL, $album->AlbumID);
+						}
+					}
+				}
+				else{
+					$added = false;
+					$cmd = "artist.getinfo&mbid=".$resultObj->id;
+					$curl = curl_init();
+					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
+					curl_setopt_array($curl, array(
+						CURLOPT_RETURNTRANSFER => 1,
+						CURLOPT_URL => $getArtistInfo,
+						CURLOPT_USERAGENT => 'Codular Sample cURL Request'
+					));
+					// Send the request & save response to $resp
+					$artistinfo = curl_exec($curl);
+					// Close request to clear up some resources
+					curl_close($curl);
+					$artist = json_decode($artistinfo)->artist;
+					$cmd = "artist.gettopalbums&mbid=".$resultObj->id;
+					$curl = curl_init();
+					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
+					curl_setopt_array($curl, array(
+						CURLOPT_RETURNTRANSFER => 1,
+						CURLOPT_URL => $getArtistInfo,
+						CURLOPT_USERAGENT => 'Codular Sample cURL Request'
+					));
+					// Send the request & save response to $resp
+					$artistinfo = curl_exec($curl);
+					// Close request to clear up some resources
+					curl_close($curl);
+					$albums = json_decode($artistinfo)->topalbums->album;
+					$lfmr = new MBRESULT($artist->name, $added);
+					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
+					$lfmr->setScore($resultObj->score);
+					$lfmr->setArtistImg($artist->image[3]->{'#text'});
+					$lfmr->setName($artist->name);
+					$lfmr->setArtistId($resultObj->id);
+					foreach ($albums as $album){
+						if($album->mbid != "" && strpos(strtolower($album->name),strtolower($q["album"])) !== false){						
+							$lfmr->addAlbum($album->name, "Skipped", $album->image[3]->{'#text'}, $album->mbid);
+						}
+					}
+				}
+				if(count($lfmr->getAlbums()) >0){
+			 		array_push($lastfmRes, $lfmr);
+				}
+			}
 		}
 	}
 }
@@ -164,18 +320,6 @@ if(class_exists(CONFIG)){
 			$("#info").html("Please enter a value in one of the fields");
 		}
 	}
-	function ajaxSend(id){
-		$.ajax({
-			url:"<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$NTYSCRIPT; ?>",
-			data:$("form#"+id).serialize(),
-			type:"POST",
-			complete: function(jqXHR, status){
-				$("#info").html(status);
-				$("#info").show();
-				$( "#info" ).dialog();
-			}
-		});
-	}
 	function ajaxSendEmail(art, alb){
 		//define your send email function here
 		$.ajax({
@@ -188,6 +332,49 @@ if(class_exists(CONFIG)){
 				$( "#info" ).dialog();
 			}
 		});
+	}
+	function ajaxAddAlbum(alb, albname, artnm, artid){
+		//define your send email function here
+		$.ajax({
+			url:"<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$NTYSCRIPT; ?>",
+			data:{"albumid":alb, "method":"hp"},
+			type:"POST",
+			complete: function(jqXHR, status){
+				if(status != "success"){
+					$("#info").html(status);
+					$("#info").show();
+					$( "#info" ).dialog();
+					return;
+				}
+				$.ajax({
+					url:"<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$NTYSCRIPT; ?>",
+					data:{"artistid":artid, "method":"hp"},
+					type:"POST",
+					complete: function(jqXHR, status){
+						$("#info").html(status);
+						$("#info").show();
+						$( "#info" ).dialog();
+					}
+				});
+			}
+		});
+		<?php if($email["enabled"]){ ?>
+			ajaxSendEmail(artnm, albname);
+		<?php } ?>
+	}
+	function ajaxAddArtist(art, artnm){
+		//define your send email function here
+		$.ajax({
+			url:"<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$NTYSCRIPT; ?>",
+			data:{"artistid":art, "method":"hp"},
+			type:"POST",
+			complete: function(jqXHR, status){
+				$("#info").html(status);
+			}
+		});
+		<?php if($email["enabled"]){ ?>
+			ajaxSendEmail(artnm, "general");
+		<?php } ?>
 	}
 </script>
 </head>
@@ -233,23 +420,29 @@ if(class_exists(CONFIG)){
 							echo "<h3>" ."<a target=\"new\" href=\"" . $album->getUrl() . "\" >". $album->getName()." - All Albums</a>". "</h3>";
 							echo '<div style="clear:both"></div>';
 							echo '<div class="resultImg"><img src="' . $album->getArtistImg() . '" />';
-									if($album->isAdded()){
-										echo '<input type="button" value="Added" disabled />'.'</div>';
-									}
-									else{
-										echo '<input type="button" onClick="ajaxAddArtist(\''. $album->getArtistId().'\',\''. $album->getName() .'\')" value="Send" />'.'</div>';
-									}
+							if($album->isAdded()){
+								echo '<input type="button" value="Added" disabled />';
+							}
+							elseif($hp["enabled"]){
+								echo '<input type="button" onClick="ajaxAddArtist(\''. $album->getArtistId().'\',\''. $album->getName() .'\')" value="Add" />';
+							}
+							elseif($email["enabled"]){
+								echo '<input type="button" onClick="ajaxSendEmail(\''. $album->getName().'\',\''. "general" .'\')" value="Add" />';
+							}
+							echo "<strong>".$album->getScore()."</strong></div>";
 							echo "<div class=\"resultData\">";
 								$albums = $album->getAlbums();
 								$k=0;								
 								foreach ($albums as $alb){
-									echo "<div>";
-									if($album->getAvailable($k) == "Skipped"){
-										echo '<div class="addBtn"><input type="button" onClick="ajaxAddAlbum(\''. $album->getArtistId().'\',\''.
-											 $album->getAlbumsId($k) .'\')" value="Add" /></div>';
+									echo "<div>";									
+									if($album->getAvailable($k) != "Skipped"){										
+										echo '<div class="addBtn"><input type="button" value="Added" disabled />'.'</div>';
 									}
-									else{
-										echo '<div class="addBtn"><input type="button" value="Added" disabled /></div>';
+									elseif($hp["enabled"]){
+										echo '<div class="addBtn"><input type="button" onClick="ajaxAddAlbum(\''.$album->getAlbumsId($k).'\',\''. $alb .'\',\''. $album->getName() .'\',\''. $album->getArtistId() .'\')" value="Add" />'.'</div>';
+									}
+									elseif($email["enabled"]){
+										echo '<div class="addBtn"><input type="button" onClick="ajaxSendEmail(\''. $album->getName().'\',\''. $alb .'\')" value="Add" />'.'</div>';
 									}
 									echo "<img src=\"".$album->getAlbumsArt($k)."\" />".$alb."</div>";
 									$k++;

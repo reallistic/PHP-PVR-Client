@@ -46,6 +46,28 @@
         </table>
         </form>
         <br />
+        <a name="lastfm"></a>
+        <h4>Last.FM</h4>
+        <form method="post" action="<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$CHSCRIPT; ?>" enctype="multipart/form-data">
+        <input type="hidden" name="t" value="lastfm" />
+        <input type="hidden" name="method" value="edit" />
+        <table>
+            <tr>
+            	<td>
+                <strong>Last FM ApiKey:</strong>
+                <input type="text" name="apikey" value="<?php echo $conf->getLastfmApiKey(); ?>" />
+                </td>
+            </tr>
+            <tr>
+            	<td colspan="2">
+                <input type="submit" value="save" />
+               
+                </td>
+           </tr>
+        </table>
+        </form>
+        <br />
+        <div style="display:none;">
         <h4>Sabnzbd</h4>
         <form method="post" action="<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$CHSCRIPT; ?>" enctype="multipart/form-data">
         <input type="hidden" name="t" value="sabnzbd" />
@@ -77,6 +99,45 @@
                 <td>
                 <strong>Category:</strong>
                 <input type="text" name="cat" value="<?php echo $sab['category']; ?>" />
+                </td>
+            </tr>
+            <tr>
+            	<td colspan="2">
+                <input type="submit" value="save" />
+               
+                </td>
+           </tr>
+        </table>
+        </form>
+        <br />
+        </div>
+        <h4>Headphones</h4>
+        <form method="post" action="<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$CHSCRIPT; ?>" enctype="multipart/form-data">
+        <input type="hidden" name="t" value="hp" />
+        <input type="hidden" name="method" value="edit" />
+        <table>
+        	<tr>
+            	<td colspan="2">
+                <strong>Enabled: </strong>
+                <input name="enabled" type="checkbox" <?php if($hp['enabled']) echo "checked"; ?> value="true" />
+                <strong>https: </strong>
+                <input name="https" type="checkbox" <?php if($hp['https']) echo "checked"; ?> value="true" />
+                </td>
+            </tr>
+            <tr>
+            	<td>
+                <strong>Server:</strong>
+                <input type="text" name="url" value="<?php echo $hp['server']; ?>" />
+                </td>
+                <td>
+                <strong>Port:</strong>
+                <input type="text" name="port" value="<?php echo $hp['port']; ?>" />
+                </td>
+            </tr>
+            <tr>
+            	<td>
+                <strong>ApiKey:</strong>
+                <input type="text" name="apikey" value="<?php echo $hp['apikey']; ?>" />
                 </td>
             </tr>
             <tr>
@@ -126,6 +187,7 @@
         </table>
         </form>
         <br />
+        <div style="display:none;">
         <h4>Indexers</h4>
         <?php 
 		echo $sroot.CONFIG::$DBS.INDEXSITE::$dbfile ."test";
@@ -222,6 +284,7 @@
            </tr>
         </table>
         </form>
+        </div>
     </div>
 </div>
 </div>

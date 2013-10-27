@@ -8,6 +8,13 @@ class CONFIG{
 		"enabled" => true,
 		"https" => false
 	);
+	private $hp = array(
+		"server" => "0.0.0.0",
+		"apikey" =>"",
+		"port" => "8181",
+		"enabled" => true,
+		"https" => false
+	);
 	private $email = array(
 		"enabled"=>false,
 		"to" => "admin@localhost",
@@ -31,8 +38,7 @@ class CONFIG{
 	public static $LOGSTOKEEP = 5; //CHANGE ME: number of logs to keep
 	public static $MAXLOGSIZE = 2097152; //CHANGE ME: max log file size (2MB)
 	public static $APPNAME = "PVR {PHP}"; //CHANGE ME: Will be displayed in title and headers
-	public static $LASTFMAPI = "24e80eb914d9be7c19392358d24a39dc";
-	public static $HPAPI = "b0f93f5384aa9fe79f9297f6767555c7";
+	private $LASTFMAPI = "";
 	
 	public function __construct(){
 		global $sroot;
@@ -53,6 +59,13 @@ class CONFIG{
 				$this->email["to"] = $s["to"];
 				$this->email["from"] = $s["from"];
 				$this->email["subject"] = $s["subject"];
+				$s= $conf->getHP();
+				$this->hp["server"] = $s["server"];
+				$this->hp["apikey"] = $s["apikey"];
+				$this->hp["port"] = $s["port"];
+				$this->hp["enabled"] = $s["enabled"];
+				$this->hp["https"] = $s["https"];
+				$this->LASTFMAPI = $conf->getLastfmApiKey();
 				$this->info = array(true, "config loaded ");
 			}
 			else{
@@ -65,7 +78,26 @@ class CONFIG{
 		}
 		LOG::info(__FILE__." Line[".__LINE__."]".$this->info[1]);
 	}
-	
+	public function getLastfmApiKey(){
+		return $this->LASTFMAPI;
+	}
+	public function saveLastfmApikey($a){
+		global $sroot;
+		$this->LASTFMAPI = $a;
+		$fp = fopen($sroot.CONFIG::$DBS.CONFIG::$dbfile, 'w+');
+		if(flock($fp, LOCK_EX)) {
+			fwrite($fp, serialize($this));
+			flock($fp, LOCK_UN);
+			fclose($fp);
+			$this->info = array(true, "config saved");
+			LOG::info(__FILE__." Line[".__LINE__."]"."config saved");
+		}
+		else {
+			$this->info = array(false, "file cannot be locked");
+			LOG::error(__FILE__." Line[".__LINE__."]"."file cannot be locked");
+		}
+		$_SESSION['response'] = $this->info[1];
+	}
 	public function saveSabConfig($s){
 		global $sroot;
 		
@@ -95,6 +127,36 @@ class CONFIG{
 		$_SESSION['response'] = $this->info[1];
 	}
 	
+	public function saveHPConfig($s){
+		global $sroot;
+		
+		if(substr($s["server"],strlen($s["server"])-1) == "/"){
+			$s["server"]=substr($s["server"],0,strlen($s["server"])-1);
+		}
+		//self::$_instance = new self();
+		$this->hp["server"] = $s["server"];
+		$this->hp["apikey"] = $s["apikey"];
+		$this->hp["port"] = $s["port"];
+		$this->hp["enabled"] = $s["enabled"];
+		$this->hp["https"] = $s["https"];
+		
+		$fp = fopen($sroot.CONFIG::$DBS.CONFIG::$dbfile, 'w+');
+		if(flock($fp, LOCK_EX)) {
+			fwrite($fp, serialize($this));
+			flock($fp, LOCK_UN);
+			fclose($fp);
+			$this->info = array(true, "config saved");
+			LOG::info(__FILE__." Line[".__LINE__."]"."config saved");
+		}
+		else {
+			$this->info = array(false, "file cannot be locked");
+			LOG::error(__FILE__." Line[".__LINE__."]"."file cannot be locked");
+		}
+		$_SESSION['response'] = $this->info[1];
+	}
+	public function getHP(){
+		return $this->hp;
+	}
 	public function getSab(){
 		return $this->sab;
 	}
@@ -152,6 +214,69 @@ class CONFIG{
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
 		$resp = curl_exec($ch);
+		curl_close($ch);
+		return $resp;
+	}
+	
+	public function sendToHP($l){
+		if($this->hp["https"] === true){
+			$url = "https://";
+		}
+		else{
+			$url = "http://";
+		}
+		$url .= $this->hp["server"].":".$this->hp["port"]."/api?cmd=addArtist&id=".$l."&apikey=".$this->hp["apikey"];
+		LOG::info(__FILE__." Line[".__LINE__."]"."adding artist to hp - ".$url);
+		$this->info= array(true, $url);
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		$resp = curl_exec($ch);
+		curl_close($ch);
+		if($this->hp["https"] === true){
+			$url = "https://";
+		}
+		else{
+			$url = "http://";
+		}
+		$url .= $this->hp["server"].":".$this->hp["port"]."/api?cmd=refreshArtist&id=".$l."&apikey=".$this->hp["apikey"];
+		LOG::info(__FILE__." Line[".__LINE__."]"."refreshing artist in hp - ".$url);
+		$this->info= array(true, $url);
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		$resp .= "|".curl_exec($ch);
+		curl_close($ch);
+		return $resp;
+	}
+	public function sendToHPAlb($l){
+		if($this->hp["https"] === true){
+			$url = "https://";
+		}
+		else{
+			$url = "http://";
+		}
+		$url .= $this->hp["server"].":".$this->hp["port"]."/api?cmd=addAlbum&id=".$l."&apikey=".$this->hp["apikey"];
+		LOG::info(__FILE__." Line[".__LINE__."]"."adding album in hp - ".$url);
+		$this->info= array(true, $url);
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		$resp = curl_exec($ch);
+		curl_close($ch);
+		if($this->hp["https"] === true){
+			$url = "https://";
+		}
+		else{
+			$url = "http://";
+		}
+		$url .= $this->hp["server"].":".$this->hp["port"]."/api?cmd=queueAlbum&id=".$l."&apikey=".$this->hp["apikey"];
+		LOG::info(__FILE__." Line[".__LINE__."]"."queuing album in hp - ".$url);
+		$this->info= array(true, $url);
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		$resp .= "|".curl_exec($ch);
 		curl_close($ch);
 		return $resp;
 	}

@@ -92,6 +92,26 @@ if(class_exists(CONFIG)){
 
 					}
 				break;
+				case "hp":
+					if($mthd == "edit"){						
+						$s = array(
+							"server"=>$u,
+							"apikey"=>$a,
+							"port"=>$port,
+							"enabled"=>$enabled,
+							"https"=>$https
+						);
+						$conf = new CONFIG;
+						$conf->saveHPConfig($s);
+						LOG::info(__FILE__." Line[".__LINE__."]"." Changed HP config");
+					}
+					else{
+						LOG::error(__FILE__." Line[".__LINE__."]"." SCRIPT attempt to access a script without proper post");
+						$url = $root.CONFIG::$SCRIPTS.CONFIG::$LGOUTSCRIPT;
+						header("location: $url");
+
+					}
+				break;
 				case "email":
 					if($mthd == "edit"){						
 						$s = array(
@@ -116,6 +136,19 @@ if(class_exists(CONFIG)){
 						$_SESSION['response'] = $at->changeAuth($nu, $np);
 						$_SESSION['authtoken'] = serialize($at);
 						LOG::info(__FILE__." Line[".__LINE__."]"." Changed login credentials");
+					}
+					else{
+						LOG::error(__FILE__." Line[".__LINE__."]"." SCRIPT attempt to access a script without proper post");
+						$url = $root.CONFIG::$SCRIPTS.CONFIG::$LGOUTSCRIPT;
+						header("location: $url");
+
+					}
+				break;
+				case "lastfm":
+					if($mthd == "edit"){
+						$conf = new CONFIG;
+						$conf->saveLastfmApikey($a);
+						LOG::info(__FILE__." Line[".__LINE__."]"." Changed last.fm apikey");
 					}
 					else{
 						LOG::error(__FILE__." Line[".__LINE__."]"." SCRIPT attempt to access a script without proper post");

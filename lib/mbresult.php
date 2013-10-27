@@ -10,11 +10,13 @@ class MBRESULT{
 	private $name;
 	private $artistId;
 	private $added;
+	private $matchscore;
 	
 	function __construct($a, $e){
 		$this->albums = array();
 		$this->available = array();
 		$this->albumArts = array();
+		$this->albumIds = array();
 		$this->artist = $a;
 		$this->added = $e;
 	}
@@ -46,7 +48,12 @@ class MBRESULT{
 	function setUrl($u){
 		$this->link = $u;
 	}
-	
+	function setScore($s){
+		$this->matchscore = $s;
+	}
+	function getScore(){
+		return $this->matchscore;
+	}
 	function getArtist(){
 		return $this->artist;
 	}
