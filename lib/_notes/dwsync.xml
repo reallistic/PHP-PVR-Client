@@ -7,4 +7,6 @@
 <file name="auth.php" server="rxse.co//var/www/webroot/ask/" local="130222004870000000" remote="130222004870000000" Dst="2" />
 <file name=".htaccess" server="rxse.co//var/www/webroot/ask/" local="130222090998251418" remote="130222090890000000" Dst="2" />
 <file name="lastfmresult.php" server="rxse.co//var/www/webroot/ask/" local="130240972298050507" remote="130240972170000000" Dst="2" />
+<file name="mbresult.php" server="rxse.co//var/www/webroot/hp/" local="130273730389137175" remote="130273730360000000" Dst="2" />
+<file name="config.php" server="rxse.co//var/www/webroot/hp/" local="130273714994243338" remote="130273714960000000" Dst="2" />
 </dwsync>

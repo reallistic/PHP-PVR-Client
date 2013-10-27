@@ -17,20 +17,16 @@ if(class_exists(CONFIG)){
 	if((isset($_REQUEST['artist']) && $_REQUEST['artist'] != "") || ( isset($_REQUEST['album']) && $_REQUEST['album'] != "")){
 		$query = true;
 		$q = array(
-				'artist'=> CONFIG::escape_query($_REQUEST['artist'])
+				'artist'=> CONFIG::escape_query($_REQUEST['artist']),
+				'album'=> CONFIG::escape_query($_REQUEST['album'])
 		);
-		LOG::info(__FILE__." Line[".__LINE__."]"."searching for artist/album ".$q["artist"]);
-	}
-	elseif(isset($_REQUEST['q']) && $_REQUEST['q'] != ""){
-		$query = true;
-		$q = CONFIG::escape_query($_REQUEST['q']);
-		LOG::info(__FILE__." Line[".__LINE__."]"."general search for ".$q);
+		LOG::info(__FILE__." Line[".__LINE__."]"."searching for artist/album ".$q["artist"]."/".$q["album"]);
 	}
 	
 	if($query === true){					 
 		// search for an artist
 		$lastfmRes = array();
-		if($q["artist"] != "" ){
+		if($q["artist"] != "" && $q["album"] == ""){
 			$apikey="b0f93f5384aa9fe79f9297f6767555c7";
 			$cmd = "findArtist&name=".$q["artist"];
 			$curl = curl_init();
@@ -43,33 +39,79 @@ if(class_exists(CONFIG)){
 			$results = curl_exec($curl);
 			// Close request to clear up some resources
 			curl_close($curl);
-			echo "<pre />";
-			$results = json_decode($results);			
-			print_r($results);
-			exit;
-			while ($artist = $results->current()) {
-				
-				$lfmr = new LASTFMRESULT($artist->getName());
-				$lfmr->setUrl($artist->getUrl());
-				$lfmr->setArtistImg($artist->getImage(4));
-				$albums = Artist::getTopAlbums($artist->getName());
-				$lfmr->setName($artist->getName());
-				/*echo "<div>";
-				echo "<h3>" . $artist->getName() . "</h3>";
-				echo "<a href=\"" . $artist->getUrl() . "\" >LastFm - " .$artist->getName()."</a><br>";
-				//echo '<img src="' . $artist->getImage(4) . '">';				
-				echo "<ul>";*/
-				foreach ($albums as $album){
-					$lfmr->addAlbum($album->getName(), false, $album->getImage(4));
-					//echo "<li>".$album->getName()."</li>";
+			$results = json_decode($results);
+			
+			foreach($results as $resultObj) {
+				$apikey=CONFIG::$HPAPI;
+				$cmd = "getArtist&id=".$resultObj->id;
+				$curl = curl_init();
+				$getAlbumsUrl = "http://localhost:8181/api?apikey=$apikey&cmd=$cmd";
+				curl_setopt_array($curl, array(
+					CURLOPT_RETURNTRANSFER => 1,
+					CURLOPT_URL => $getAlbumsUrl,
+					CURLOPT_USERAGENT => 'Codular Sample cURL Request'
+				));
+				// Send the request & save response to $resp
+				$artistinfo = curl_exec($curl);
+				// Close request to clear up some resources
+				curl_close($curl);
+				$artistinfo = json_decode($artistinfo);
+				if(count($artistinfo->artist) > 0){
+					$artist = $artistinfo->artist[0];
+					$albums = $artistinfo->albums;
+					$added = true;
+					$lfmr = new MBRESULT($artist->ArtistName, $added);
+					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
+					$lfmr->setArtistImg($artist->ThumbURL);
+					$lfmr->setName($artist->ArtistName);
+					$lfmr->setArtistId($resultObj->id);
+					foreach ($albums as $album){
+						$lfmr->addAlbum($album->AlbumTitle, $album->Status, $album->ThumbURL, $album->AlbumID);
+					}
 				}
-				/*echo "</ul>";
-				echo "</div>";*/
+				else{
+					$added = false;
+					$lastfmapikey=CONFIG::$LASTFMAPI;
+					$cmd = "artist.getinfo&mbid=".$resultObj->id;
+					$curl = curl_init();
+					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
+					curl_setopt_array($curl, array(
+						CURLOPT_RETURNTRANSFER => 1,
+						CURLOPT_URL => $getArtistInfo,
+						CURLOPT_USERAGENT => 'Codular Sample cURL Request'
+					));
+					// Send the request & save response to $resp
+					$artistinfo = curl_exec($curl);
+					// Close request to clear up some resources
+					curl_close($curl);
+					$artist = json_decode($artistinfo)->artist;
+					$cmd = "artist.gettopalbums&mbid=".$resultObj->id;
+					$curl = curl_init();
+					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
+					curl_setopt_array($curl, array(
+						CURLOPT_RETURNTRANSFER => 1,
+						CURLOPT_URL => $getArtistInfo,
+						CURLOPT_USERAGENT => 'Codular Sample cURL Request'
+					));
+					// Send the request & save response to $resp
+					$artistinfo = curl_exec($curl);
+					// Close request to clear up some resources
+					curl_close($curl);
+					$albums = json_decode($artistinfo)->topalbums->album;
+					
+					$lfmr = new MBRESULT($artist->name, $added);
+					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
+					$lfmr->setArtistImg($artist->image[3]->{'#text'});
+					$lfmr->setName($artist->name);
+					$lfmr->setArtistId($resultObj->id);
+					foreach ($albums as $album){
+						$lfmr->addAlbum($album->name, "Skipped", $album->image[3]->{'#text'}, $album->mbid);
+					}
+				}
 				if(count($albums) >0){
 			 		array_push($lastfmRes, $lfmr);
 				}
-				$artist = $results->next();
-			}	
+			}
 		}
 		else if($q["album"] != "" && $q["artist"] == ""){
 			$results = Album::search($q["album"], 5);
@@ -80,18 +122,7 @@ if(class_exists(CONFIG)){
 				$lfmr->setArtistImg($artist->getImage(4));
 				$lfmr->setUrl($album->getUrl());
 				$lfmr->setName($album->getName());
-				array_push($lastfmRes, $lfmr);
-				
-				
-				/*echo "<div>";
-				echo "<h3>" . $album->getArtist() . "</h3>";
-				echo "<a href=\"" . $album->getUrl() . "\" >LastFm - " .$album->getName()."</a><br>";			
-				//echo '<img src="' . $artist->getImage(4) . '">';
-				echo "<ul>";
-				echo "<li>".$album->getName()."</li>";
-				echo "</ul>";
-				echo "</div>";*/
-			 	
+				array_push($lastfmRes, $lfmr);			 	
 				$album = $results->next();
 			}
 		}
@@ -104,46 +135,6 @@ if(class_exists(CONFIG)){
 			$artist = Artist::getInfo($album->getArtist());
 			$lfmr->setArtistImg($artist->getImage(4));
 			array_push($lastfmRes, $lfmr);
-		}
-		$results = array();
-		if(false & $indexers === true && $indexersprop === true){			
-			$filter=array();
-			$curls=array();
-			for( $i=0; $i<count($indexsites); $i++){
-				$indexsite = $indexsites[$i];
-				if(!$indexsite->isEnabled()){
-					continue;
-				}
-				array_push($curls, $indexsite->makeSearch($q));
-				
-				$ch = curl_init($indexsite->makeSearch($q));
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($ch, CURLOPT_HEADER, 0);
-				$resp = curl_exec($ch);
-				curl_close($ch);
-				
-				$xml = simplexml_load_string($resp);
-				if(count($xml->channel->item) !== 0){
-				   foreach ($xml->channel->item as $item):
-						if(!in_array(strtolower(CONFIG::escape_query($item->title)), $filter)){
-							$sr = new SEARCHRESULT();
-							$sr->setLink($item->link);
-							$sr->setTitle($item->title);
-							$attr = $item->xpath('newznab:attr[@name="grabs"]');
-							$sr->setGrabs((string)$attr[0]['value']);						
-							array_push($results, $sr);
-							array_push($filter, strtolower(CONFIG::escape_query($item->title)));
-						}
-				   endforeach;
-				   
-				   LOG::info(__FILE__." Line[".__LINE__."]"."found ".count($xml->channel->item)." results with site ".$indexsite->getName());
-				}
-				
-				
-			}
-			if (count($results) >0){
-				$response = true; //response recieved
-			}
 		}
 	}
 }
@@ -235,36 +226,31 @@ if(class_exists(CONFIG)){
             <br />
             <div id="results">
             <?php
-                if($response === true){
-                    /*echo implode("<br>",$results);*/
-					$i=0;
-                   foreach ($results as $item): ?>
-                        <form id="result<?php echo $i; ?>" enctype="application/x-www-form-urlencoded" method="post" >
-                        	<input type="hidden" name="name" value="<?php echo $item->getTitle(); ?>" />
-                            <input type="hidden" name="link" value="<?php echo $item->getLink(); ?>" /> 
-                            <input type="hidden" name="method" value="sabnzbd" /> 
-			    			<a href="<?php echo $item->getLink(); ?>" ><h3><?php echo $item->getTitle(); ?></h3></a> <strong>Grabs: <?php echo $item->getGrabs();?></strong>
-                			<input type="button" onClick="ajaxSend('result<?php echo $i; ?>')" value="Send" />
-                            <br />
-                        </form>
-                        <?php
-						$i++;
-                   endforeach;
-                }
-				elseif($query === true && count($lastfmRes) >0){
+                if($query === true && count($lastfmRes) >0){
 					$i =0;
 					foreach($lastfmRes as $album){
 						echo "<div class=\"result\">";
-							echo "<h3>" ."<a target=\"new\" href=\"" . $album->getUrl() . "/+Albums\" >". $album->getArtist()." - All Albums</a>". "</h3>";
+							echo "<h3>" ."<a target=\"new\" href=\"" . $album->getUrl() . "\" >". $album->getName()." - All Albums</a>". "</h3>";
 							echo '<div style="clear:both"></div>';
-							echo '<div class="resultImg"><img src="' . $album->getArtistImg() . '"></div>';
+							echo '<div class="resultImg"><img src="' . $album->getArtistImg() . '" />';
+									if($album->isAdded()){
+										echo '<input type="button" value="Added" disabled />'.'</div>';
+									}
+									else{
+										echo '<input type="button" onClick="ajaxAddArtist(\''. $album->getArtistId().'\',\''. $album->getName() .'\')" value="Send" />'.'</div>';
+									}
 							echo "<div class=\"resultData\">";
 								$albums = $album->getAlbums();
-								$k=0;
-								
+								$k=0;								
 								foreach ($albums as $alb){
 									echo "<div>";
-									echo '<div class="addBtn"><input type="button" onClick="ajaxSendEmail(\''. $album->getArtist().'\',\''. $alb .'\')" value="Send" /></div>';
+									if($album->getAvailable($k) == "Skipped"){
+										echo '<div class="addBtn"><input type="button" onClick="ajaxAddAlbum(\''. $album->getArtistId().'\',\''.
+											 $album->getAlbumsId($k) .'\')" value="Add" /></div>';
+									}
+									else{
+										echo '<div class="addBtn"><input type="button" value="Added" disabled /></div>';
+									}
 									echo "<img src=\"".$album->getAlbumsArt($k)."\" />".$alb."</div>";
 									$k++;
 								}

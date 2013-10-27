@@ -30,7 +30,9 @@ class CONFIG{
 	public static $LGOUTSCRIPT = "logout.php";
 	public static $LOGSTOKEEP = 5; //CHANGE ME: number of logs to keep
 	public static $MAXLOGSIZE = 2097152; //CHANGE ME: max log file size (2MB)
-	public static $APPNAME = "PVR {PHP}"; //CHANGE ME: Will be displayed in title and headers	
+	public static $APPNAME = "PVR {PHP}"; //CHANGE ME: Will be displayed in title and headers
+	public static $LASTFMAPI = "24e80eb914d9be7c19392358d24a39dc";
+	public static $HPAPI = "b0f93f5384aa9fe79f9297f6767555c7";
 	
 	public function __construct(){
 		global $sroot;
