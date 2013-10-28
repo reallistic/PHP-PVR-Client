@@ -163,7 +163,24 @@ class CONFIG{
 	public function getEmail(){
 		return $this->email;
 	}
-	
+	public function getHPHistory(){
+		$hp = $this->hp;
+		$cmd = "getHistory";
+		if($hp["https"] === true){
+			$url = "https://";
+		}
+		else{
+			$url = "http://";
+		}
+		$url .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		$results = curl_exec($ch);
+		curl_close($ch);
+		LOG::info(__FILE__." Line[".__LINE__."]"."getting HP history - ".$url);
+		return $results;
+	}
 	public function getSabQueue(){
 		if($this->sab["https"] === true){
 			$url = "https://";

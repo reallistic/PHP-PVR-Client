@@ -5,36 +5,8 @@ require_once("../bootstrap.php");
 if(class_exists(CONFIG)){
 	$config = true;
 	$conf = new CONFIG;
-	$sab = $conf->getSab();
-	$sabqueue = $conf->getSabQueue();
-	$sabhist = $conf->getSabHistory();
-	$qxml = simplexml_load_string($sabqueue);
-	$hxml = simplexml_load_string($sabhist);
-	if(count($qxml->slots->slot) !== 0){
-		$queue = array();
-		foreach ($qxml->slots->slot as $item):
-			if(strtolower($item->cat) == strtolower($sab["category"]) || $item->cat == "*"){
-				$qitm["status"] = $item->status;
-				$qitm["eta"] = $item->eta;
-				$qitm["size"] = $item->size;
-				$qitm["percent"] = $item->percentage;
-				$qitm["name"] = $item->filename;
-				array_push($queue, $qitm);
-			}
-		endforeach;
-	}
-	if(count($hxml->slots->slot) !== 0){
-		$history = array();
-		foreach ($hxml->slots->slot as $item):
-			if(strtolower($item->category) == strtolower($sab["category"]) || $item->category == "*"){
-				$hitm["status"] = $item->status;
-				$hitm["msg"] = $item->fail_message;
-				$hitm["size"] = $item->size;
-				$hitm["name"] = $item->name;
-				array_push($history, $hitm);
-			}
-		endforeach;
-	}
+	$history = $conf->getHPHistory();
+	$history = json_decode($history);
 	$error = false;	
 }
 
@@ -75,37 +47,8 @@ if(class_exists(CONFIG)){
     	<a class="button" href="<?php echo $root.CONFIG::$MGMT; ?>">Manage</a>
     </div>
     <div style="clear:both"></div>
+    <input type="text" value="Search" id="historySearch" />
     <hr />
-    <div>
-        <a name="queue"></a>
-        <h4>Queued:</h4>
-        <?php
-		if(count($queue) ==0){
-			echo "Nothing in queue";
-		}
-		else{ ?>
-			<table> 
-			<tr>
-            	<td>Name</td>
-                <td>Size</td>
-                <td>ETA</td>
-                <td>Percent</td>
-                <td>Status</td>
-            </tr>
-			<?php
-			foreach($history as $qitm){ ?>
-				<tr>
-                <td><?php echo $qitm["name"]; ?></td>
-                    <td><?php echo $qitm["size"]; ?></td>
-                    <td><?php echo $qitm["eta"]; ?></td>
-                    <td><?php echo $qitm["percent"]; ?></td>
-                    <td><?php echo $qitm["status"]; ?></td>
-                </tr>
-	  <?php } ?>
-            </table> <?php
-		}
-		?>
-    </div>
      <div>
         <a name="history"></a>
         <h4>History:</h4>
@@ -118,17 +61,21 @@ if(class_exists(CONFIG)){
 			<tr>
             	<td>Name</td>
                 <td>Size</td>
-                <td>Message:</td>
+                <td>Date Added</td>
                 <td>Status</td>
             </tr>
 			<?php
 			foreach($history as $hitm){ ?>
-				<tr>
+				<tr class="historyTr">
                 	
-                	<td><?php echo $hitm["name"]; ?></td>
-                    <td><?php echo $hitm["size"]; ?></td>
-                    <td><?php echo $hitm["msg"]; ?></td>
-                    <td><?php echo $hitm["status"]; ?></td>
+                	<td class="historyTitle"><?php echo $hitm->Title; ?></td>
+                    <?php if(round(intval($hitm->Size)/(1024.0*1024.0),2) >1024){ ?>
+                    <td><?php echo round(intval($hitm->Size)/(1024.0*1024.0*1024.0),2); ?>GB</td>
+                    <?php }else{ ?>
+                    <td><?php echo round(intval($hitm->Size)/(1024.0*1024.0),2); ?>MB</td>
+                    <?php } ?>
+                    <td><?php echo $hitm->DateAdded; ?></td>
+                    <td><?php echo $hitm->Status; ?></td>
                 </tr>
 	  <?php } ?>
             </table> <?php
@@ -136,6 +83,39 @@ if(class_exists(CONFIG)){
 		?>
     </div>
 </div>
+<script type="text/javascript">
+	(function(){
+		$("#historySearch").bind("keyup change",function(e){
+			setTimeout(function(){
+				var val = $("#historySearch").val();
+				if(val != ""){
+					$(".historyTitle").each(function(index, element) {
+						if($(element).text().toLowerCase().indexOf(val.toLowerCase()) ==-1){
+							$($(".historyTr")[index]).hide();
+						}
+						else{
+							$($(".historyTr")[index]).show();
+						}
+					});
+				}
+			},0);
+		});
+		$("#historySearch").bind("blur focus",function(e){
+			setTimeout(function(){
+				var val = $("#historySearch").val();
+				if(val == ""){
+					$("#historySearch").val("Search");
+					$(".historyTr").each(function(index, element) {
+                    	$(element).show();
+                	});
+				}
+				else if(val == "Search"){
+					$("#historySearch").val("");
+				}
+			},0);
+		});
+	})();
+</script>
 </div>
 <div id="info" title="Notifications">
 <?php
