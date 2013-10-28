@@ -41,6 +41,8 @@ if(class_exists(CONFIG)){
 			$conf = new CONFIG;
 			$sab = $conf->getSab();
 			$hp = $conf->getHP();
+			$cp = $conf->getCP();
+			$sb = $conf->getSB();
 			$email = $conf->getEmail();
 			$error = false;
 		}

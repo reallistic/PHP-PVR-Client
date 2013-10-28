@@ -149,6 +149,82 @@
         </table>
         </form>
         <br />
+        <h4>Couchpotato</h4>
+        <form method="post" action="<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$CHSCRIPT; ?>" enctype="multipart/form-data">
+        <input type="hidden" name="t" value="cp" />
+        <input type="hidden" name="method" value="edit" />
+        <table>
+        	<tr>
+            	<td colspan="2">
+                <strong>Enabled: </strong>
+                <input name="enabled" type="checkbox" <?php if($cp['enabled']) echo "checked"; ?> value="true" />
+                <strong>https: </strong>
+                <input name="https" type="checkbox" <?php if($cp['https']) echo "checked"; ?> value="true" />
+                </td>
+            </tr>
+            <tr>
+            	<td>
+                <strong>Server:</strong>
+                <input type="text" name="url" value="<?php echo $cp['server']; ?>" />
+                </td>
+                <td>
+                <strong>Port:</strong>
+                <input type="text" name="port" value="<?php echo $cp['port']; ?>" />
+                </td>
+            </tr>
+            <tr>
+            	<td>
+                <strong>ApiKey:</strong>
+                <input type="text" name="apikey" value="<?php echo $cp['apikey']; ?>" />
+                </td>
+            </tr>
+            <tr>
+            	<td colspan="2">
+                <input type="submit" value="save" />
+               
+                </td>
+           </tr>
+        </table>
+        </form>
+        <br />
+        <h4>Sickbeard</h4>
+        <form method="post" action="<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$CHSCRIPT; ?>" enctype="multipart/form-data">
+        <input type="hidden" name="t" value="sb" />
+        <input type="hidden" name="method" value="edit" />
+        <table>
+        	<tr>
+            	<td colspan="2">
+                <strong>Enabled: </strong>
+                <input name="enabled" type="checkbox" <?php if($sb['enabled']) echo "checked"; ?> value="true" />
+                <strong>https: </strong>
+                <input name="https" type="checkbox" <?php if($sb['https']) echo "checked"; ?> value="true" />
+                </td>
+            </tr>
+            <tr>
+            	<td>
+                <strong>Server:</strong>
+                <input type="text" name="url" value="<?php echo $sb['server']; ?>" />
+                </td>
+                <td>
+                <strong>Port:</strong>
+                <input type="text" name="port" value="<?php echo $sb['port']; ?>" />
+                </td>
+            </tr>
+            <tr>
+            	<td>
+                <strong>ApiKey:</strong>
+                <input type="text" name="apikey" value="<?php echo $sb['apikey']; ?>" />
+                </td>
+            </tr>
+            <tr>
+            	<td colspan="2">
+                <input type="submit" value="save" />
+               
+                </td>
+           </tr>
+        </table>
+        </form>
+        <br />
         <h4>Email Notification</h4>
         <form method="post" action="<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$CHSCRIPT; ?>" enctype="multipart/form-data">
         <input type="hidden" name="t" value="email" />

@@ -1,296 +1,33 @@
 <?php
 session_start();
 $response = false;
-$indexers = false;
-$indexersprop = false;
 $config = false;
 $query = false;
 require_once("bootstrap.php");
 if(class_exists(CONFIG)){
 	$config = true;
-	if(is_file(CONFIG::$DBS.INDEXSITE::$dbfile)){
-		$indexers = true; //check for indexers was good
-		$inxs = file_get_contents(CONFIG::$DBS.INDEXSITE::$dbfile);
-		$indexsites = unserialize($inxs);
-		$indexersprop = is_array($indexsites); //check for indexsites class was good
-	}
-	if((isset($_REQUEST['artist']) && $_REQUEST['artist'] != "") || ( isset($_REQUEST['album']) && $_REQUEST['album'] != "")){
-		$query = true;
-		$q = array(
-				'artist'=> CONFIG::escape_query($_REQUEST['artist']),
-				'album'=> CONFIG::escape_query($_REQUEST['album'])
-		);
-		LOG::info(__FILE__." Line[".__LINE__."]"."searching for artist/album ".$q["artist"]."/".$q["album"]);
-	}
-	
-	if($query === true){					 
-		// search for an artist
-		$lastfmRes = array();
+	if(isset($_REQUEST['t']) && $_REQUEST['t'] != ""){
+		$t = $_REQUEST['t'];
 		$conf= new CONFIG;
-		$hp=$conf->getHP();
 		$email = $conf->getEmail();
-		$lastfmapikey=$conf->getLastfmApiKey();
-		if($q["artist"] != "" && $q["album"] == ""){
-			$cmd = "findArtist&name=".urlencode($q["artist"]);
-			if($hp["https"] === true){
-				$getArtistUrl = "https://";
-			}
-			else{
-				$getArtistUrl = "http://";
-			}
-			$getArtistUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
-			$ch = curl_init($getArtistUrl);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_HEADER, 0);
-			$results = curl_exec($ch);
-			curl_close($ch);
-			$results = json_decode($results);
-			foreach($results as $resultObj) {
-				if(intval($resultObj->score) <75){
-					continue;
-				}
-				$cmd = "getArtist&id=".$resultObj->id;
-				if($hp["https"] === true){
-					$getAlbumsUrl = "https://";
-				}
-				else{
-					$getAlbumsUrl = "http://";
-				}
-				$getAlbumsUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
-				$ch = curl_init($getAlbumsUrl);
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($ch, CURLOPT_HEADER, 0);
-				$artistinfo = curl_exec($ch);
-				curl_close($ch);
-				$artistinfo = json_decode($artistinfo);
-				
-				if(count($artistinfo->artist) > 0){
-					$artist = $artistinfo->artist[0];
-					$albums = $artistinfo->albums;
-					$added = true;
-					$lfmr = new MBRESULT($artist->ArtistName, $added);
-					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
-					$lfmr->setScore($resultObj->score);
-					$lfmr->setArtistImg($artist->ThumbURL);
-					$lfmr->setName($artist->ArtistName);
-					$lfmr->setArtistId($resultObj->id);
-					foreach ($albums as $album){
-						$lfmr->addAlbum($album->AlbumTitle, $album->Status, $album->ThumbURL, $album->AlbumID);
-					}
-				}
-				else{
-					$added = false;
-					$cmd = "artist.getinfo&mbid=".$resultObj->id;
-					$curl = curl_init();
-					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
-					curl_setopt_array($curl, array(
-						CURLOPT_RETURNTRANSFER => 1,
-						CURLOPT_URL => $getArtistInfo,
-						CURLOPT_USERAGENT => 'Codular Sample cURL Request'
-					));
-					// Send the request & save response to $resp
-					$artistinfo = curl_exec($curl);
-					// Close request to clear up some resources
-					curl_close($curl);
-					$artist = json_decode($artistinfo)->artist;
-					$cmd = "artist.gettopalbums&mbid=".$resultObj->id;
-					$curl = curl_init();
-					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
-					curl_setopt_array($curl, array(
-						CURLOPT_RETURNTRANSFER => 1,
-						CURLOPT_URL => $getArtistInfo,
-						CURLOPT_USERAGENT => 'Codular Sample cURL Request'
-					));
-					// Send the request & save response to $resp
-					$artistinfo = curl_exec($curl);
-					// Close request to clear up some resources
-					curl_close($curl);
-					$albums = json_decode($artistinfo)->topalbums->album;
-					$lfmr = new MBRESULT($artist->name, $added);
-					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
-					$lfmr->setScore($resultObj->score);
-					$lfmr->setArtistImg($artist->image[3]->{'#text'});
-					$lfmr->setName($artist->name);
-					$lfmr->setArtistId($resultObj->id);
-					foreach ($albums as $album){
-						if($album->mbid != ""){						
-							$lfmr->addAlbum($album->name, "Skipped", $album->image[3]->{'#text'}, $album->mbid);
-						}
-					}
-				}
-				if(count($lfmr->getAlbums())>0){
-			 		array_push($lastfmRes, $lfmr);
-				}
-			}
+		if($t == "hp" && ((isset($_REQUEST['artist']) && $_REQUEST['artist'] != "") || ( isset($_REQUEST['album']) && $_REQUEST['album'] != ""))){
+			$query = true;
+			$q = array(
+					'artist'=> CONFIG::escape_query($_REQUEST['artist']),
+					'album'=> CONFIG::escape_query($_REQUEST['album'])
+			);
+			LOG::info(__FILE__." Line[".__LINE__."]"."searching for artist/album ".$q["artist"]."/".$q["album"]);
+			$lastfmRes = $conf->getMusicResults($q);
 		}
-		else if($q["album"] != "" && $q["artist"] == ""){
-			$cmd = "findAlbum&name=".urlencode($q["album"]);
-			if($hp["https"] === true){
-				$getArtistUrl = "https://";
-			}
-			else{
-				$getArtistUrl = "http://";
-			}
-			$getArtistUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
-			$ch = curl_init($getArtistUrl);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_HEADER, 0);
-			$results = curl_exec($ch);
-			curl_close($ch);
-			$results = json_decode($results);
-			foreach($results as $resultObj) {
-				
-				if(intval($resultObj->score) <80){
-					continue;
-				}
-				$cmd = "getAlbum&id=".$resultObj->albumid;
-				if($hp["https"] === true){
-					$getAlbumsUrl = "https://";
-				}
-				else{
-					$getAlbumsUrl = "http://";
-				}
-				$getAlbumsUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
-				$ch = curl_init($getAlbumsUrl);
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($ch, CURLOPT_HEADER, 0);
-				$artistinfo = curl_exec($ch);
-				curl_close($ch);
-				$artistinfo = json_decode($artistinfo);
-				
-				if(count($artistinfo->album) > 0){
-					$album = $artistinfo->album[0];
-					$added = true;
-					$lfmr = new MBRESULT($album->ArtistName, $added);
-					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
-					$lfmr->setScore($resultObj->score);
-					$lfmr->setArtistImg($artist->ThumbURL);
-					$lfmr->setName($album->ArtistName);
-					$lfmr->setArtistId($resultObj->id);
-					$lfmr->addAlbum($album->AlbumTitle, $album->Status, $album->ThumbURL, $album->AlbumID);
-				}
-				else{
-					$added = false;
-					$cmd = "album.getinfo&mbid=".$resultObj->albumid;
-					$curl = curl_init();
-					$getAlbumInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
-					curl_setopt_array($curl, array(
-						CURLOPT_RETURNTRANSFER => 1,
-						CURLOPT_URL => $getAlbumInfo,
-						CURLOPT_USERAGENT => 'Codular Sample cURL Request'
-					));
-					// Send the request & save response to $resp
-					$albuminfo = curl_exec($curl);
-					// Close request to clear up some resources
-					curl_close($curl);
-					$album = json_decode($albuminfo)->album;
-					$lfmr = new MBRESULT($album->artist, $added);
-					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
-					$lfmr->setScore($resultObj->score);
-					$lfmr->setArtistImg($album->image[3]->{'#text'});
-					$lfmr->setName($album->artist);
-					$lfmr->setArtistId($resultObj->id);					
-					$lfmr->addAlbum($album->name, "Skipped", $album->image[3]->{'#text'}, $album->mbid);
-				}
-				if(count($lfmr->getAlbums())>0){
-			 		array_push($lastfmRes, $lfmr);
-				}
-			}
+		elseif($t == "cp" && isset($_REQUEST['movie']) && $_REQUEST['movie'] != ""){
+			$query = true;
+			$q = CONFIG::escape_query($_REQUEST['movie']);
+			$couchpRes = $conf->getMovieResults($q);
 		}
-		else{
-			$cmd = "findArtist&name=".urlencode($q["artist"]);
-			if($hp["https"] === true){
-				$getArtistUrl = "https://";
-			}
-			else{
-				$getArtistUrl = "http://";
-			}
-			$getArtistUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
-			$ch = curl_init($getArtistUrl);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_HEADER, 0);
-			$results = curl_exec($ch);
-			curl_close($ch);
-			$results = json_decode($results);
-			foreach($results as $resultObj) {
-				if(intval($resultObj->score) <75){
-					continue;
-				}
-				$cmd = "getArtist&id=".$resultObj->id;
-				if($hp["https"] === true){
-					$getAlbumsUrl = "https://";
-				}
-				else{
-					$getAlbumsUrl = "http://";
-				}
-				$getAlbumsUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
-				$ch = curl_init($getAlbumsUrl);
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($ch, CURLOPT_HEADER, 0);
-				$artistinfo = curl_exec($ch);
-				curl_close($ch);
-				$artistinfo = json_decode($artistinfo);
-				
-				if(count($artistinfo->artist) > 0){
-					$artist = $artistinfo->artist[0];
-					$albums = $artistinfo->albums;
-					$added = true;
-					$lfmr = new MBRESULT($artist->ArtistName, $added);
-					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
-					$lfmr->setScore($resultObj->score);
-					$lfmr->setArtistImg($artist->ThumbURL);
-					$lfmr->setName($artist->ArtistName);
-					$lfmr->setArtistId($resultObj->id);
-					foreach ($albums as $album){
-						if(strpos(strtolower($album->AlbumTitle),strtolower($q["album"])) !== false){
-							$lfmr->addAlbum($album->AlbumTitle, $album->Status, $album->ThumbURL, $album->AlbumID);
-						}
-					}
-				}
-				else{
-					$added = false;
-					$cmd = "artist.getinfo&mbid=".$resultObj->id;
-					$curl = curl_init();
-					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
-					curl_setopt_array($curl, array(
-						CURLOPT_RETURNTRANSFER => 1,
-						CURLOPT_URL => $getArtistInfo,
-						CURLOPT_USERAGENT => 'Codular Sample cURL Request'
-					));
-					// Send the request & save response to $resp
-					$artistinfo = curl_exec($curl);
-					// Close request to clear up some resources
-					curl_close($curl);
-					$artist = json_decode($artistinfo)->artist;
-					$cmd = "artist.gettopalbums&mbid=".$resultObj->id;
-					$curl = curl_init();
-					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
-					curl_setopt_array($curl, array(
-						CURLOPT_RETURNTRANSFER => 1,
-						CURLOPT_URL => $getArtistInfo,
-						CURLOPT_USERAGENT => 'Codular Sample cURL Request'
-					));
-					// Send the request & save response to $resp
-					$artistinfo = curl_exec($curl);
-					// Close request to clear up some resources
-					curl_close($curl);
-					$albums = json_decode($artistinfo)->topalbums->album;
-					$lfmr = new MBRESULT($artist->name, $added);
-					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
-					$lfmr->setScore($resultObj->score);
-					$lfmr->setArtistImg($artist->image[3]->{'#text'});
-					$lfmr->setName($artist->name);
-					$lfmr->setArtistId($resultObj->id);
-					foreach ($albums as $album){
-						if($album->mbid != "" && strpos(strtolower($album->name),strtolower($q["album"])) !== false){						
-							$lfmr->addAlbum($album->name, "Skipped", $album->image[3]->{'#text'}, $album->mbid);
-						}
-					}
-				}
-				if(count($lfmr->getAlbums()) >0){
-			 		array_push($lastfmRes, $lfmr);
-				}
-			}
+		elseif($t == "sb" && isset($_REQUEST['show']) && $_REQUEST['show'] != ""){
+			$query = true;
+			$q = CONFIG::escape_query($_REQUEST['show']);
+			$sickbRes = $conf->getTvResults($q);
 		}
 	}
 }
@@ -305,19 +42,24 @@ if(class_exists(CONFIG)){
 <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/themes/excite-bike/jquery-ui.min.css" rel="stylesheet"></link>
 <link href="<?php echo $root.CONFIG::$STYLE; ?>" rel="stylesheet" type="text/css"></link>
 <script type="text/javascript">
-	$(function() {
-		$( "input[type=button],input[type=submit], a.button, button" )
-		  .button();
-		$("button").click(function( event ) {
-			event.preventDefault();
-		});
-	 });
-	function doSubmit(){
-		if($("input[name=q]").val() != "" || $("input[name=artist]").val() != "" || $("input[name=album]").val() != ""){
-			$("form#srch").submit();
+	function doSubmit(fm){
+		var valid = false;
+		switch(fm){
+			case "hp":
+				valid = ($("input[name=artist]").val() != "" || $("input[name=album]").val() != "");
+			break;
+			case "sb":
+				valid = ($("input[name=show]").val() != "");
+			break;
+			case "cp":
+				valid = ($("input[name=movie]").val() != "");
+			break;
+		}
+		if(valid === true){
+			$("form#"+fm).submit();
 		}
 		else{
-			$("#info").html("Please enter a value in one of the fields");
+			$("#info").html("Please enter a value in at least one field");
 		}
 	}
 	function ajaxSendEmail(art, alb){
@@ -396,24 +138,46 @@ if(class_exists(CONFIG)){
         <div class="subhead">
             <a class="button" href="<?php echo $root.CONFIG::$QUEUE; ?>">Status</a>
         </div>
+        <div class="subhead">
+        	<select name="pvrType" size="1" id="pvrType">
+            	<option value="cp" <?php if($query === false || ($query === true && $t =="cp")) echo "selected"; ?>>Movie</option>
+                <option value="hp" <?php if($query === true && $t =="hp") echo "selected"; ?>>Music</option>
+                <option value="sb" <?php if($query === true && $t =="sb") echo "selected"; ?>>Tv Show</option>
+            </select>
+         </div>
         <div style="clear:both"></div>
         <hr />
         <div>
-            <form id="srch" enctype="application/x-www-form-urlencoded" method="post">
-            <label>Find an Artist?
-            <input type="text" name="artist" /></label>
-            and/or
-            <label>Find an Album?
-            <input type="text" name="album" /></label>
-            <br/>
+            <form <?php if($query === true && $t !="cp") echo 'style="display:none;"'; ?> id="cp" enctype="application/x-www-form-urlencoded" method="post">
+            	<input type="hidden" value="cp" name="t" />
+                <label>Find a Movie?
+                <input type="text" name="movie" value="<?php echo $_REQUEST['movie']; ?>" /></label>
+                <button onClick="doSubmit('cp');" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Search</span></button>
             </form>
-            <button onClick="doSubmit();" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Search</span></button>
-            <br />
             
+            <form <?php if($query === false || ($query === true && $t !="hp")) echo 'style="display:none;"'; ?> id="hp" enctype="application/x-www-form-urlencoded" method="post">
+            	<input type="hidden" value="hp" name="t" />
+                <label>Find an Artist?
+                <input type="text" name="artist" value="<?php echo $_REQUEST['artist']; ?>" /></label>
+                and/or
+                <label>Find an Album?
+                <input type="text" name="album" value="<?php echo $_REQUEST['album']; ?>" /></label>
+                <button onClick="doSubmit('hp');" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Search</span></button>
+            </form>
+            
+            <form <?php if($query === false || ($query === true && $t !="sb")) echo 'style="display:none;"'; ?> id="sb" enctype="application/x-www-form-urlencoded" method="post">
+                <input type="hidden" value="sb" name="t" />
+                <label>Find a Tv Show?
+                <input type="text" name="show" value="<?php echo $_REQUEST['show']; ?>" /></label>
+                <button onClick="doSubmit('sb');" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Search</span></button>
+            </form>
             <br />
             <div id="results">
             <?php
-                if($query === true && count($lastfmRes) >0){
+                if($query === false){
+                    echo "<h3>Enter values above and click search</h3>";
+                }
+				elseif(count($lastfmRes) >0){
 					$i =0;
 					foreach($lastfmRes as $album){
 						echo "<div class=\"result\">";
@@ -454,9 +218,52 @@ if(class_exists(CONFIG)){
 					}
 					echo '<div style="clear:both"></div>';
 				}
-                elseif($query === false){
-                    echo "<h3>Enter values above and click search</h3>";
-                }
+                elseif(count($couchpRes) >0){
+					echo "<form action=\"\" method=\"post\">";
+					echo "<table border=\"0\" cellspacing=\"0\" class=\"tablesorter\">";
+	
+					foreach($couchpRes->{'movies'} as $movie){
+							if ($movie->{'images'}->{'poster'}[0] == NULL || $movie->{'year'} == NULL)
+									continue;
+							echo "<tr>";
+									echo "<td>";
+											echo "<input type=\"radio\" name=\"selection\" value=\"".$movie->{'imdb'}."&title=".urlencode($movie->{'titles'}[0])."\" >";
+									echo "</td>";
+									echo "<td>";
+											$poster=$movie->{'images'}->{'poster'}[0];
+											echo "<img src=\"".$poster."\" height=\"80\" width=\"60\">";
+									echo "</td>";
+									$title = $movie->{'titles'}[0];
+									( $movie->{'year'} == NULL ? $year ="" : $year = $movie->{'year'} );
+									echo "<td>".$title."</td>";
+									echo "<td>".$year."</td>";
+							echo "</tr>";
+					}
+	
+					echo "<input type=\"submit\" name=\"submit2\" value=\"Add to queue\">";
+					echo "</form>";
+				}
+				elseif(count($sickbRes) >0){
+					echo "<form action=\"\" method=\"post\">";
+					echo "<table border=\"0\" cellspacing=\"0\" class=\"tablesorter\">";	
+					foreach($sickbRes->{'data'}->{'results'} as $show) {	
+						$tvdbidValue=$result->{'tvdbid'};
+						$tvdbName=$show->{'name'};
+						$tvdbAirDate=$show->{'first_aired'};
+							// show Results
+							echo "<tr>";
+									echo "<td>";
+											echo "<input type=\"radio\" name=\"tvshow\" value=\"$tvdbidValue\">";
+									echo "</td>";
+									echo "<td>";
+											echo "<b>" . $tvdbName . "</b>" . ( $tvdbAirDate == NULL ? '' : ' (started on: ' . $tvdbAirDate . ")" ) . "<br />";
+									echo "</td>";
+							echo "</tr>";
+					}
+
+					echo "<input type=\"submit\" name=\"submit2\" value=\"Add Show\">" . "</b>";
+					echo "</form>";
+				}
                 elseif($response === false) {
                     echo "<h3>No Results</h3>";
                 }
@@ -470,21 +277,12 @@ if(class_exists(CONFIG)){
 	$notify=false;
 	if(isset($_SESSION['response'])){
 		echo "<p>".$_SESSION['response']."</p>";
+		unset($_SESSION['response']);
 		$notify=true;
 	}
 	if($config === false){
 		LOG::error(__FILE__." Line[".__LINE__."]"."config.php missing");
 		echo "<h3>Improper installation. Missing config.php</h3>";
-		$notify=true;
-	}
-	elseif($indexers === false){
-		LOG::warn(__FILE__." Line[".__LINE__."]"."couldn't find any indexers");
-		echo "Please configure at least one index site<a class=\"button\" href=\"". $root.CONFIG::$MGMT."\" >Manage</a>";
-		$notify=true;
-	}
-	elseif($indexersprop === false){
-		LOG::warn(__FILE__." Line[".__LINE__."]"."couldn't find any proper indexers");
-		echo "index site db curropted please repair<a class=\"button\" href=\"". $root.CONFIG::$MGMT."\" >Manage</a>";
 		$notify=true;
 	}
 	
@@ -495,10 +293,26 @@ if(class_exists(CONFIG)){
 			$( "#info" ).dialog();
 		});
   </script>
-<?php }
-	//unset($_SESSION['response']);
-	exit;
-	?>
+<?php }	?>
 </div>
+<script type="text/javascript">
+$(function() {
+	$( "input[type=button],input[type=submit], a.button, button" )
+	  .button();
+	$("button").click(function( event ) {
+		event.preventDefault();
+	});
+	$("#pvrType").bind("change", function(e){
+		$("form").each(function(i, elm){
+			$(this).hide(300);
+		});
+		setTimeout(function(){
+			$("#"+$("#pvrType").val()).show(300);
+		},300);
+	});
+	
+ });
+</script>
 </body>
 </html>
+<?php exit; ?>

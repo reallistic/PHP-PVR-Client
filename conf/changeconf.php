@@ -112,6 +112,46 @@ if(class_exists(CONFIG)){
 
 					}
 				break;
+				case "cp":
+					if($mthd == "edit"){						
+						$s = array(
+							"server"=>$u,
+							"apikey"=>$a,
+							"port"=>$port,
+							"enabled"=>$enabled,
+							"https"=>$https
+						);
+						$conf = new CONFIG;
+						$conf->saveCPConfig($s);
+						LOG::info(__FILE__." Line[".__LINE__."]"." Changed CP config");
+					}
+					else{
+						LOG::error(__FILE__." Line[".__LINE__."]"." SCRIPT attempt to access a script without proper post");
+						$url = $root.CONFIG::$SCRIPTS.CONFIG::$LGOUTSCRIPT;
+						header("location: $url");
+
+					}
+				break;
+				case "sb":
+					if($mthd == "edit"){						
+						$s = array(
+							"server"=>$u,
+							"apikey"=>$a,
+							"port"=>$port,
+							"enabled"=>$enabled,
+							"https"=>$https
+						);
+						$conf = new CONFIG;
+						$conf->saveSBConfig($s);
+						LOG::info(__FILE__." Line[".__LINE__."]"." Changed SB config");
+					}
+					else{
+						LOG::error(__FILE__." Line[".__LINE__."]"." SCRIPT attempt to access a script without proper post");
+						$url = $root.CONFIG::$SCRIPTS.CONFIG::$LGOUTSCRIPT;
+						header("location: $url");
+
+					}
+				break;
 				case "email":
 					if($mthd == "edit"){						
 						$s = array(
