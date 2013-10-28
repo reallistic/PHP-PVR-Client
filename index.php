@@ -244,25 +244,30 @@ if(class_exists(CONFIG)){
 					echo "</form>";
 				}
 				elseif(count($sickbRes) >0){
-					echo "<form action=\"\" method=\"post\">";
-					echo "<table border=\"0\" cellspacing=\"0\" class=\"tablesorter\">";	
-					foreach($sickbRes->{'data'}->{'results'} as $show) {	
-						$tvdbidValue=$result->{'tvdbid'};
-						$tvdbName=$show->{'name'};
-						$tvdbAirDate=$show->{'first_aired'};
+					echo "<table style=\"border:0; padding:0; width:80%;\" border=\"0\" cellspacing=\"0\" class=\"tablesorter\">";	
+					foreach($sickbRes as $show) {	
+						$tvdbidValue=$show->getTvdbId();
+						$tvdbName=$show->getName();
+						$tvdbAirDate=$show->getStarted();
 							// show Results
 							echo "<tr>";
 									echo "<td>";
-											echo "<input type=\"radio\" name=\"tvshow\" value=\"$tvdbidValue\">";
+											echo "<input type=\"button\" name=\"submit2\" value=\"Add Show\">";
 									echo "</td>";
 									echo "<td>";
-											echo "<b>" . $tvdbName . "</b>" . ( $tvdbAirDate == NULL ? '' : ' (started on: ' . $tvdbAirDate . ")" ) . "<br />";
+											echo "<b>" . $tvdbName . "</b>";
 									echo "</td>";
+									echo "<td>";
+											echo ( $tvdbAirDate == NULL ? '' : ' (started on: ' . $tvdbAirDate . ")" );
+									echo "</td>";
+									echo "<td>";
+											echo $show->getStatus();
+									echo "</td>";
+									echo "<td>&nbsp;</td>";
 							echo "</tr>";
+							echo "<tr><td colspan=\"4\"><img style=\"width:100%;\" src='".$show->getImg()."' /></td></tr>";
 					}
-
-					echo "<input type=\"submit\" name=\"submit2\" value=\"Add Show\">" . "</b>";
-					echo "</form>";
+					echo "</table>";
 				}
                 elseif($response === false) {
                     echo "<h3>No Results</h3>";

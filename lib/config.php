@@ -439,9 +439,9 @@ class CONFIG{
 		return json_decode($results);
 	}
 	public function getTvResults($q){
-		$feed = $proto."://".$ip.":".$port."/api/".$api."/?cmd=".$cmd.$searchName;
 		$sb = $this->sb;
 		$cmd = "/?cmd=sb.searchtvdb&name=".urlencode($q);
+		$tvresults = array();
 		if($sb["https"] === true){
 			$getSBShow = "https://";
 		}
@@ -455,7 +455,42 @@ class CONFIG{
 		curl_setopt($ch, CURLOPT_HEADER, 0);
 		$results = curl_exec($ch);
 		curl_close($ch);
-		return json_decode($results);
+		$shows = json_decode($results)->data->results;
+		foreach($shows as $show){
+			$s = new SBRESULT($show->tvdbid, $show->name, $show->first_aired);
+			$s->setUrl("http://thetvdb.com/?tab=series&id=".$show->tvdbid);
+			$cmd = "/?cmd=show.getquality&tvdbid=".$show->tvdbid;
+			if($sb["https"] === true){
+				$getSBShowInfo = "https://";
+			}
+			else{
+				$getSBShowInfo = "http://";
+			}
+			$getSBShowInfo .= $sb["server"].":".$sb["port"]."/api/".$sb["apikey"].$cmd;
+			$ch = curl_init($getSBShowInfo);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_HEADER, 0);
+			$SBShowAdded = curl_exec($ch);
+			curl_close($ch);
+			$SBShowAdded = (json_decode($SBShowAdded)->result == "success");
+			$s->setAdded($SBShowAdded);
+			if($sb["https"] === true){
+				$sbShowImg = "https://";
+			}
+			else{
+				$sbShowImg = "http://";
+			}
+			if(in_array($sb["server"],array("0.0.0.0", "127.0.0.1", "localhost"))){
+				$serv = $_SERVER['HTTP_HOST'];
+			}
+			else{
+				$serv = $sb["server"];
+			}
+			$sbShowImg .= $serv.":".$sb["port"]."/api/".$sb["apikey"]."/?cmd=show.getbanner&tvdbid=".$show->tvdbid;
+			$s->setImg($sbShowImg);
+			array_push($tvresults, $s);
+		}
+		return $tvresults;
 	}
 	public function getMusicResults($q){
 		$hp = $this->hp;
