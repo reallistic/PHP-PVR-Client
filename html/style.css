@@ -8,6 +8,17 @@ html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, blockquote, pre, 
 	outline: none;
 	text-decoration:none;
 }
+body{
+	font-family:Arial;
+	font-weight:bold;
+	font-size:10px;
+}
+a{
+	color:#B96100;
+}
+a:hover{
+	text-decoration:underline;
+}
 
 /***** CUSTOM FONT *****/
 
@@ -147,7 +158,7 @@ a.button, button, input[type="button"],input[type="submit"],.ui-button-text{
 	background-color:#DDD;
 	float:left;
 	position:relative;
-	width:430px;
+	/*width:430px;*/
 	margin-bottom:10px;
 	margin-left:5px;
 	margin-right:5px;
@@ -155,13 +166,13 @@ a.button, button, input[type="button"],input[type="submit"],.ui-button-text{
 
 .resultData{
 	position:relative;
-	width:430px;
+	/*width:430px;*/
 	height:320px;
 	overflow:auto;
 	margin-left:5px;
 }
 .resultData div{
-	width:75px;
+	width:89px;
 	margin:2.5px;
 	height:150px;
 	border:1px solid #fff;
@@ -169,20 +180,25 @@ a.button, button, input[type="button"],input[type="submit"],.ui-button-text{
 	position:relative;
 }
 .resultData div img{
-	width:75px;
+	width:89px;
 	height:auto;
 	max-height:120px;
-	max-width:75px;
 }
 
-.resultImg{
+div.resultImg{
 	position: relative;
+	float:left;
+	text-align:center;
+	width:184px;
 }
-.resultImg img{
-	width:100px;
+div.resultImg ul{
+	list-style:none;
+}
+div.resultImg img{
+	width:184px;
+	max-height:100px;
 	height:auto;
-	max-height:120px;
-	max-width:100px;
+	
 }
 div.addBtn{
 	position:absolute;
@@ -206,7 +222,33 @@ div.addBtn:hover{
 	-webkit-opacity:1;
 	filter:Alpha(opacity=100%);
 }
-
 .sickbeard td{
+	vertical-align:bottom;
+	height:128px;
+	position:relative;
+	padding:10px 0px;
+	border-bottom:1px solid #aaa;
+}
+.sickbeard td img{
+	height:100px;
+	position:absolute;
+	top:10px;
+	left:2px;
+}
+.sickbeard th{
+	text-align:left;
+	padding-left:3px;
+}
+
+.couchpotato td{
 	vertical-align:middle;
+	padding:10px 0px;
+	border-bottom:1px solid #aaa;
+}
+.couchpotato td img{
+	height:100px;
+}
+.couchpotato th{
+	text-align:left;
+	padding-left:3px;
 }

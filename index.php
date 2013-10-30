@@ -253,7 +253,9 @@ if(class_exists(CONFIG)){
 						echo "<div class=\"result\">";
 							echo "<h3>" ."<a target=\"new\" href=\"" . $album->getUrl() . "\" >". $album->getName()." - All Albums</a>". "</h3>";
 							echo '<div style="clear:both"></div>';
+							echo "<div class=\"resultData\">";
 							echo '<div class="resultImg"><img src="' . $album->getArtistImg() . '" />';
+							echo "<ul><li>Artist: ";
 							if($album->isAdded()){
 								echo '<input type="button" value="Added" disabled />';
 							}
@@ -263,8 +265,9 @@ if(class_exists(CONFIG)){
 							elseif($email["enabled"]){
 								echo '<input id="'. $album->getArtistId().'" type="button" onClick="ajaxSendEmail(\''. $album->getName().'\',\''. "general" .'\', this)" value="Add" />';
 							}
-							echo "<strong>".$album->getScore()."</strong></div>";
-							echo "<div class=\"resultData\">";
+							echo "</li>";
+							echo "<li>Search Match: <strong>".$album->getScore()."</strong></li></ul></div>";
+							
 								$albums = $album->getAlbums();
 								$k=0;								
 								foreach ($albums as $alb){
@@ -289,7 +292,16 @@ if(class_exists(CONFIG)){
 					echo '<div style="clear:both"></div>';
 				}
                 elseif(count($couchpRes) >0){
-					echo "<table style=\"border:0; padding:0; width:80%;\" border=\"0\" cellspacing=\"0\" class=\"sickbeard\">";	
+					echo "<table style=\"border:0; padding:0;\" border=\"0\" cellspacing=\"0\" class=\"couchpotato\">";
+						?>
+                        		<tr>
+                                	<th><h3>Thumb</h3></th>
+                                    <th><h3>Action</h3></th>
+                                    <th><h3>Movie Name</h3></th>
+                                    <th><h3>Year</h3></th>
+                                    <th><h3>Genres</h3></th>
+                                </tr>
+                        <?php	
 					foreach($couchpRes as $movie) {
 							// show Results
 							echo "<tr>";
@@ -308,20 +320,25 @@ if(class_exists(CONFIG)){
 									echo "<td><a target=\"_new\" href=\"".$movie->getUrl()."\" ><b>" . $movie->getName() . "</b></a></td>";
 									echo "<td>".$movie->getStarted()."</td>";
 									echo "<td>".$movie->getGenre()."</td>";
-									echo "<td>".$movie->getStatus()."</td>";
 									
 							echo "</tr>";
 					}
 					echo "</table>";
 				}
 				elseif(count($sickbRes) >0){
-					echo "<table style=\"border:0; padding:0; width:80%;\" border=\"0\" cellspacing=\"0\" class=\"sickbeard\">";	
+					echo "<table style=\"border:0; padding:0;\" border=\"0\" cellspacing=\"0\" class=\"sickbeard\">";
+					?>
+                        		<tr>
+                                    <th><h3>Action</h3></th>
+                                    <th><h3>Show Name</h3></th>
+                                    <th><h3>Show Started</h3></th>
+                                </tr>
+                        <?php
 					foreach($sickbRes as $show) {
 						$tvdbAirDate=$show->getStarted();
 							// show Results
-						echo "<tr>";
-								echo "<td><img style=\"height:100px;\" src='".$show->getImg()."' /></td>";
-								echo "<td>";
+						echo "<tr>";								
+								echo "<td><img src='".$show->getImg()."' />";
 								if($show->isAdded()){
 									echo '<input type="button" value="Added" disabled />';
 								}
@@ -336,7 +353,6 @@ if(class_exists(CONFIG)){
 								echo "<td>";
 										echo ( $tvdbAirDate == NULL ? '' : ' (started on: ' . $tvdbAirDate . ")" );
 								echo "</td>";
-								echo "<td>".$show->getStatus()."</td>";
 						echo "</tr>";
 					}
 					echo "</table>";

@@ -682,7 +682,40 @@ class CONFIG{
 			else{
 				$serv = $sb["server"];
 			}
-			$sbShowImg .= $serv.":".$sb["port"]."/api/".$sb["apikey"]."/?cmd=show.getposter&tvdbid=".$show->tvdbid;
+			$sbShowImg .= $serv.":".$sb["port"]."/api/".$sb["apikey"]."/?cmd=show.getbanner&tvdbid=".$show->tvdbid;
+			if(false && $SBShowAdded === false){
+				$sbshowImgCacheCal = "/home/sabgrab/.sickbeard/cache/images/".$show->tvdbid.".banner.jpg";
+				if(file_exists($sbshowImgCacheCal)){
+					$exists = true;
+					$sbShowImg = $sbshowImgCacheCal;
+				}
+				else{
+					$sbshowImgCal = "http://www.thetvdb.com/banners/graphical/".$show->tvdbid."-g.jpg";
+					$ch = curl_init($sbshowImgCal);
+					curl_setopt($ch, CURLOPT_NOBODY, true);
+					curl_exec($ch);
+					$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+					$exists = (!($retcode >= 400) || $retcode == 200 ? true: false);
+					curl_close($ch);
+					if($exists  === false){
+						for($i =2; $i<4 && $exists === false; $i++){
+							$sbshowImgCal ="http://www.thetvdb.com/banners/graphical/".$show->tvdbid."-g$i.jpg";
+							$ch = curl_init($sbshowImgCal);
+							curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+							curl_setopt($ch, CURLOPT_HEADER, 0);
+							curl_exec($ch);
+							$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+							$exists = (!($retcode >= 400) || $retcode == 200 ? true: false);
+							curl_close($ch);
+						}
+					}
+					if($exists  === true){
+						$image = file_get_contents($sbshowImgCal);
+						file_put_contents($sbshowImgCacheCal,$image);
+					}
+				}
+				
+			}
 			$s->setImg($sbShowImg);
 			array_push($tvresults, $s);
 		}
@@ -734,7 +767,7 @@ class CONFIG{
 					$lfmr = new MBRESULT($artist->ArtistName, $added);
 					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
 					$lfmr->setScore($resultObj->score);
-					$lfmr->setArtistImg($artist->ThumbURL);
+					$lfmr->setArtistImg($artist->ArtworkURL);
 					$lfmr->setName($artist->ArtistName);
 					$lfmr->setArtistId($resultObj->id);
 					foreach ($albums as $album){
@@ -772,7 +805,7 @@ class CONFIG{
 					$lfmr = new MBRESULT($artist->name, $added);
 					$lfmr->setUrl("http://musicbrainz.org/artist/".$resultObj->id);
 					$lfmr->setScore($resultObj->score);
-					$lfmr->setArtistImg($artist->image[3]->{'#text'});
+					$lfmr->setArtistImg($artist->image[4]->{'#text'});
 					$lfmr->setName($artist->name);
 					$lfmr->setArtistId($resultObj->id);
 					foreach ($albums as $album){
