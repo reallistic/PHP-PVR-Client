@@ -9,6 +9,9 @@ if(class_exists(CONFIG)){
 	if(isset($_REQUEST['t']) && $_REQUEST['t'] != ""){
 		$t = $_REQUEST['t'];
 		$conf= new CONFIG;
+		$hp = $conf->getHP();
+		$sb = $conf->getSB();
+		$co = $conf->getCP();
 		$email = $conf->getEmail();
 		if($t == "hp" && ((isset($_REQUEST['artist']) && $_REQUEST['artist'] != "") || ( isset($_REQUEST['album']) && $_REQUEST['album'] != ""))){
 			$query = true;
