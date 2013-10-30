@@ -409,7 +409,7 @@ class CONFIG{
 		$_SESSION['response'] = $this->info[1];
 	}
 	
-	public function sendToMail($a, $b){
+	public function sendToMail($a, $b, $t){
 		LOG::info(__FILE__." Line[".__LINE__."]"." in send to mail");
 		$msg = "Request for:" ."\n";
 		$msg.= $a ."\n";
@@ -417,11 +417,51 @@ class CONFIG{
 		$headers = 'From: '. $this->email["from"] . "\r\n";
 		LOG::info(__FILE__." Line[".__LINE__."]"."sending email to - ".$this->email["to"]. " msg: ".CONFIG::escape_query($msg));
 		$this->info= array(true, $url);
-		$resp = mail($this->email["to"], $this->email["subject"], $msg, $headers);
+		$sbj = "New request for $t";
+		$resp = mail($this->email["to"], $sbj, $msg, $headers);
+		return $resp;
+	}
+	public function sendToCP($id){
+		 $cp = $this->cp;
+		 if($this->cp["https"] === true){
+			$url = "https://";
+		}
+		else{
+			$url = "http://";
+		}
+		$cmd="/movie.add?identifier=$id";
+		$url .= $cp["server"].":".$cp["port"]."/api/".$cp["apikey"].$cmd;
+		LOG::info(__FILE__." Line[".__LINE__."]"."adding movie to cp - ".$url);
+		$this->info= array(true, $url);
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		$resp = curl_exec($ch);
+		curl_close($ch);
+		return $resp;
+	}
+	public function sendToSB($id){
+		 $sb = $this->sb;
+		 if($this->sb["https"] === true){
+			$url = "https://";
+		}
+		else{
+			$url = "http://";
+		}
+		$cmd = "/?cmd=show.addnew&tvdbid=$id";
+		$url .= $sb["server"].":".$sb["port"]."/api/".$sb["apikey"].$cmd;
+		LOG::info(__FILE__." Line[".__LINE__."]"."adding show to sb - ".$url);
+		$this->info= array(true, $url);
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		$resp = curl_exec($ch);
+		curl_close($ch);
 		return $resp;
 	}
 	public function getMovieResults($q){
 		$cp = $this->cp;
+		$movieresults = array();
 		$cmd = "/movie.search?q=".urlencode($q);
 		if($cp["https"] === true){
 			$getCPMovie = "https://";
@@ -436,7 +476,16 @@ class CONFIG{
 		curl_setopt($ch, CURLOPT_HEADER, 0);
 		$results = curl_exec($ch);
 		curl_close($ch);
-		return json_decode($results);
+		$movies = json_decode($results)->movies;
+		foreach($movies as $movie){
+			$s = new CPRESULT($movie->imdb, $movie->titles[0], $movie->year);
+			$s->setUrl("http://www.imdb.com/title/".$movie->imdb."/");
+			$s->setAdded(($movie->in_wanted !== false? 1:($movie->in_library !== false ?2:0)));
+			$s->setImg($movie->images->poster[0]);
+			$s->setGenre(implode(", ",$movie->genres));
+			array_push($movieresults, $s);
+		}
+		return $movieresults;
 	}
 	public function getTvResults($q){
 		$sb = $this->sb;
@@ -486,7 +535,7 @@ class CONFIG{
 			else{
 				$serv = $sb["server"];
 			}
-			$sbShowImg .= $serv.":".$sb["port"]."/api/".$sb["apikey"]."/?cmd=show.getbanner&tvdbid=".$show->tvdbid;
+			$sbShowImg .= $serv.":".$sb["port"]."/api/".$sb["apikey"]."/?cmd=show.getposter&tvdbid=".$show->tvdbid;
 			$s->setImg($sbShowImg);
 			array_push($tvresults, $s);
 		}

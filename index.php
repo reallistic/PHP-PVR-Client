@@ -11,7 +11,7 @@ if(class_exists(CONFIG)){
 		$conf= new CONFIG;
 		$hp = $conf->getHP();
 		$sb = $conf->getSB();
-		$co = $conf->getCP();
+		$cp = $conf->getCP();
 		$email = $conf->getEmail();
 		if($t == "hp" && ((isset($_REQUEST['artist']) && $_REQUEST['artist'] != "") || ( isset($_REQUEST['album']) && $_REQUEST['album'] != ""))){
 			$query = true;
@@ -65,18 +65,73 @@ if(class_exists(CONFIG)){
 			$("#info").html("Please enter a value in at least one field");
 		}
 	}
-	function ajaxSendEmail(art, alb){
+	function ajaxSendEmail(art, alb, t, btn){
 		//define your send email function here
+		if(btn != null){
+			btn.disabled = true;
+		}
 		$.ajax({
 			url:"<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$NTYSCRIPT; ?>",
-			data:{"artist":art,"album":alb, "method":"email"},
+			data:{"line1":art,"line2":alb, "t":t, "method":"email"},
 			type:"POST",
 			complete: function(jqXHR, status){
 				$("#info").html(status);
 				$("#info").show();
 				$( "#info" ).dialog();
+				if(status != "success" && btn != null){
+					btn.disabled = false;
+				}
+				else if(btn != null){
+					$(btn).val("added");
+				}
 			}
 		});
+	}
+	function ajaxAddMovie(imdbid, name,btn){
+		//define your send email function here
+		btn.disabled = true;
+		$.ajax({
+			url:"<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$NTYSCRIPT; ?>",
+			data:{"imdbid":imdbid, "name":name, "method":"cp"},
+			type:"POST",
+			complete: function(jqXHR, status){
+					$("#info").html(status);
+					$("#info").show();
+					$( "#info" ).dialog();
+					if(status != "success"){
+						btn.disabled = false;
+					}
+					else{
+						$(btn).val("added");
+					}
+			}
+		});
+		<?php if($email["enabled"]){ ?>
+			ajaxSendEmail(name, imdbid, "movie", null);
+		<?php } ?>
+	}
+	function ajaxAddTV(tvdbid, name,btn){
+		//define your send email function here
+		btn.disabled = true;
+		$.ajax({
+			url:"<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$NTYSCRIPT; ?>",
+			data:{"tvdbid":tvdbid, "name":name, "method":"sb"},
+			type:"POST",
+			complete: function(jqXHR, status){
+					$("#info").html(status);
+					$("#info").show();
+					$( "#info" ).dialog();
+					if(status != "success"){
+						btn.disabled = false;
+					}
+					else{
+						$(btn).val("added");
+					}
+			}
+		});
+		<?php if($email["enabled"]){ ?>
+			ajaxSendEmail(name, tvdbid, "TV Show", null);
+		<?php } ?>
 	}
 	function ajaxAddAlbum(alb, albname, artnm, artid,btn){
 		//define your send email function here
@@ -107,7 +162,7 @@ if(class_exists(CONFIG)){
 			}
 		});
 		<?php if($email["enabled"]){ ?>
-			ajaxSendEmail(artnm, albname);
+			ajaxSendEmail(artnm, albname, "music", null);
 		<?php } ?>
 	}
 	function ajaxAddArtist(art, artnm, btn){
@@ -130,7 +185,7 @@ if(class_exists(CONFIG)){
 			}
 		});
 		<?php if($email["enabled"]){ ?>
-			ajaxSendEmail(artnm, "general");
+			ajaxSendEmail(artnm, "*add artist*", "music", null);
 		<?php } ?>
 	}
 </script>
@@ -206,7 +261,7 @@ if(class_exists(CONFIG)){
 								echo '<input id="'. $album->getArtistId().'" type="button" onClick="ajaxAddArtist(\''. $album->getArtistId().'\',\''. $album->getName() .'\', this)" value="Add" />';
 							}
 							elseif($email["enabled"]){
-								echo '<input id="'. $album->getArtistId().'" type="button" onClick="ajaxSendEmail(\''. $album->getName().'\',\''. "general" .'\')" value="Add" />';
+								echo '<input id="'. $album->getArtistId().'" type="button" onClick="ajaxSendEmail(\''. $album->getName().'\',\''. "general" .'\', this)" value="Add" />';
 							}
 							echo "<strong>".$album->getScore()."</strong></div>";
 							echo "<div class=\"resultData\">";
@@ -221,7 +276,7 @@ if(class_exists(CONFIG)){
 										echo '<div class="addBtn"><input type="button" onClick="ajaxAddAlbum(\''.$album->getAlbumsId($k).'\',\''. $alb .'\',\''. $album->getName() .'\',\''. $album->getArtistId() .'\', this)" value="Add" />'.'</div>';
 									}
 									elseif($email["enabled"]){
-										echo '<div class="addBtn"><input type="button" onClick="ajaxSendEmail(\''. $album->getName().'\',\''. $alb .'\')" value="Add" />'.'</div>';
+										echo '<div class="addBtn"><input type="button" onClick="ajaxSendEmail(\''. $album->getName().'\',\''. $alb .'\',\'Music\', this)" value="Add" />'.'</div>';
 									}
 									echo "<img src=\"".$album->getAlbumsArt($k)."\" />".$alb."</div>";
 									$k++;
@@ -234,53 +289,55 @@ if(class_exists(CONFIG)){
 					echo '<div style="clear:both"></div>';
 				}
                 elseif(count($couchpRes) >0){
-					echo "<form action=\"\" method=\"post\">";
-					echo "<table border=\"0\" cellspacing=\"0\" class=\"tablesorter\">";
-	
-					foreach($couchpRes->{'movies'} as $movie){
-							if ($movie->{'images'}->{'poster'}[0] == NULL || $movie->{'year'} == NULL)
-									continue;
-							echo "<tr>";
-									echo "<td>";
-											echo "<input type=\"radio\" name=\"selection\" value=\"".$movie->{'imdb'}."&title=".urlencode($movie->{'titles'}[0])."\" >";
-									echo "</td>";
-									echo "<td>";
-											$poster=$movie->{'images'}->{'poster'}[0];
-											echo "<img src=\"".$poster."\" height=\"80\" width=\"60\">";
-									echo "</td>";
-									$title = $movie->{'titles'}[0];
-									( $movie->{'year'} == NULL ? $year ="" : $year = $movie->{'year'} );
-									echo "<td>".$title."</td>";
-									echo "<td>".$year."</td>";
-							echo "</tr>";
-					}
-	
-					echo "<input type=\"submit\" name=\"submit2\" value=\"Add to queue\">";
-					echo "</form>";
-				}
-				elseif(count($sickbRes) >0){
-					echo "<table style=\"border:0; padding:0; width:80%;\" border=\"0\" cellspacing=\"0\" class=\"tablesorter\">";	
-					foreach($sickbRes as $show) {	
-						$tvdbidValue=$show->getTvdbId();
-						$tvdbName=$show->getName();
-						$tvdbAirDate=$show->getStarted();
+					echo "<table style=\"border:0; padding:0; width:80%;\" border=\"0\" cellspacing=\"0\" class=\"sickbeard\">";	
+					foreach($couchpRes as $movie) {
 							// show Results
 							echo "<tr>";
+									echo "<td><img style=\"height:100px;\" src='".$movie->getImg()."' /></td>";
 									echo "<td>";
-											echo "<input type=\"button\" name=\"submit2\" value=\"Add Show\">";
+									if($movie->isAdded()){
+										echo '<input type="button" value="Added" disabled />';
+									}
+									elseif($cp["enabled"]){
+										echo "<input onclick=\"ajaxAddMovie('".$movie->getImdbId()."','".$movie->getName()."', this);\" type=\"button\" value=\"Add Movie\">";
+									}
+									elseif($email["enabled"]){
+										echo '<input type="button" onClick="ajaxSendEmail(\''. $movie->getName().'\',\''. $movie->getImdbId() .'\',\'Movie\', this)" value="Add Movie" />';
+									}
 									echo "</td>";
-									echo "<td>";
-											echo "<b>" . $tvdbName . "</b>";
-									echo "</td>";
-									echo "<td>";
-											echo ( $tvdbAirDate == NULL ? '' : ' (started on: ' . $tvdbAirDate . ")" );
-									echo "</td>";
-									echo "<td>";
-											echo $show->getStatus();
-									echo "</td>";
-									echo "<td>&nbsp;</td>";
+									echo "<td><a target=\"_new\" href=\"".$movie->getUrl()."\" ><b>" . $movie->getName() . "</b></a></td>";
+									echo "<td>".$movie->getStarted()."</td>";
+									echo "<td>".$movie->getGenre()."</td>";
+									echo "<td>".$movie->getStatus()."</td>";
+									
 							echo "</tr>";
-							echo "<tr><td colspan=\"4\"><img style=\"width:100%;\" src='".$show->getImg()."' /></td></tr>";
+					}
+					echo "</table>";
+				}
+				elseif(count($sickbRes) >0){
+					echo "<table style=\"border:0; padding:0; width:80%;\" border=\"0\" cellspacing=\"0\" class=\"sickbeard\">";	
+					foreach($sickbRes as $show) {
+						$tvdbAirDate=$show->getStarted();
+							// show Results
+						echo "<tr>";
+								echo "<td><img style=\"height:100px;\" src='".$show->getImg()."' /></td>";
+								echo "<td>";
+								if($show->isAdded()){
+									echo '<input type="button" value="Added" disabled />';
+								}
+								elseif($sb["enabled"]){
+									echo "<input onclick=\"ajaxAddTV('".$show->getTvdbId()."','".$show->getName()."', this);\" type=\"button\" value=\"Add Show\">";
+								}
+								elseif($email["enabled"]){
+									echo '<input type="button" onClick="ajaxSendEmail(\''. $show->getName().'\',\''. $show->getTvdbId() .'\',\'TV Show\', this)" value="Add Show" />';
+								}
+								echo "</td>";
+								echo "<td><a target=\"_new\" href=\"".$show->getUrl()."\" ><b>" . $show->getName() . "</b></a></td>";
+								echo "<td>";
+										echo ( $tvdbAirDate == NULL ? '' : ' (started on: ' . $tvdbAirDate . ")" );
+								echo "</td>";
+								echo "<td>".$show->getStatus()."</td>";
+						echo "</tr>";
 					}
 					echo "</table>";
 				}
@@ -326,8 +383,12 @@ $(function() {
 		$("form").each(function(i, elm){
 			$(this).hide(300);
 		});
+		$("#results").hide(300);
 		setTimeout(function(){
 			$("#"+$("#pvrType").val()).show(300);
+			if($("#pvrType").val() == "<?php echo $t; ?>"){
+				$("#results").show(300);
+			}
 		},300);
 	});
 	

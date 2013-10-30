@@ -206,3 +206,7 @@ div.addBtn:hover{
 	-webkit-opacity:1;
 	filter:Alpha(opacity=100%);
 }
+
+.sickbeard td{
+	vertical-align:middle;
+}
