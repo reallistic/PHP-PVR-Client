@@ -78,27 +78,30 @@ if(class_exists(CONFIG)){
 			}
 		});
 	}
-	function ajaxAddAlbum(alb, albname, artnm, artid){
+	function ajaxAddAlbum(alb, albname, artnm, artid,btn){
 		//define your send email function here
+		btn.disabled = true;
+		document.getElementById(artid).disabled = true;
 		$.ajax({
 			url:"<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$NTYSCRIPT; ?>",
 			data:{"albumid":alb, "method":"hp"},
 			type:"POST",
 			complete: function(jqXHR, status){
-				if(status != "success"){
 					$("#info").html(status);
 					$("#info").show();
 					$( "#info" ).dialog();
-					return;
-				}
+					if(status != "success"){
+						btn.disabled = false;
+						document.getElementById(artid).disabled = false;
+						return;
+					}
+					$("#"+artid).val("added");
+					$(btn).val("added");
 				$.ajax({
 					url:"<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$NTYSCRIPT; ?>",
 					data:{"artistid":artid, "method":"hp"},
 					type:"POST",
 					complete: function(jqXHR, status){
-						$("#info").html(status);
-						$("#info").show();
-						$( "#info" ).dialog();
 					}
 				});
 			}
@@ -107,14 +110,23 @@ if(class_exists(CONFIG)){
 			ajaxSendEmail(artnm, albname);
 		<?php } ?>
 	}
-	function ajaxAddArtist(art, artnm){
+	function ajaxAddArtist(art, artnm, btn){
 		//define your send email function here
+		btn.disabled = true;
 		$.ajax({
 			url:"<?php echo $root.CONFIG::$SCRIPTS.CONFIG::$NTYSCRIPT; ?>",
 			data:{"artistid":art, "method":"hp"},
 			type:"POST",
 			complete: function(jqXHR, status){
 				$("#info").html(status);
+				$("#info").show();
+				$( "#info" ).dialog();
+				if(status == "success"){
+					$(btn).val("added");
+				}
+				else{
+					btn.disabled = false;
+				}
 			}
 		});
 		<?php if($email["enabled"]){ ?>
@@ -191,10 +203,10 @@ if(class_exists(CONFIG)){
 								echo '<input type="button" value="Added" disabled />';
 							}
 							elseif($hp["enabled"]){
-								echo '<input type="button" onClick="ajaxAddArtist(\''. $album->getArtistId().'\',\''. $album->getName() .'\')" value="Add" />';
+								echo '<input id="'. $album->getArtistId().'" type="button" onClick="ajaxAddArtist(\''. $album->getArtistId().'\',\''. $album->getName() .'\', this)" value="Add" />';
 							}
 							elseif($email["enabled"]){
-								echo '<input type="button" onClick="ajaxSendEmail(\''. $album->getName().'\',\''. "general" .'\')" value="Add" />';
+								echo '<input id="'. $album->getArtistId().'" type="button" onClick="ajaxSendEmail(\''. $album->getName().'\',\''. "general" .'\')" value="Add" />';
 							}
 							echo "<strong>".$album->getScore()."</strong></div>";
 							echo "<div class=\"resultData\">";
@@ -206,7 +218,7 @@ if(class_exists(CONFIG)){
 										echo '<div class="addBtn"><input type="button" value="Added" disabled />'.'</div>';
 									}
 									elseif($hp["enabled"]){
-										echo '<div class="addBtn"><input type="button" onClick="ajaxAddAlbum(\''.$album->getAlbumsId($k).'\',\''. $alb .'\',\''. $album->getName() .'\',\''. $album->getArtistId() .'\')" value="Add" />'.'</div>';
+										echo '<div class="addBtn"><input type="button" onClick="ajaxAddAlbum(\''.$album->getAlbumsId($k).'\',\''. $alb .'\',\''. $album->getName() .'\',\''. $album->getArtistId() .'\', this)" value="Add" />'.'</div>';
 									}
 									elseif($email["enabled"]){
 										echo '<div class="addBtn"><input type="button" onClick="ajaxSendEmail(\''. $album->getName().'\',\''. $alb .'\')" value="Add" />'.'</div>';
