@@ -7,6 +7,8 @@ if(class_exists(CONFIG)){
 	$conf = new CONFIG;
 	$history = $conf->getHPHistory();
 	$history = json_decode($history);
+	$cphistory = $conf->getCPHistory();
+	$sbhistory = $conf->getSBHistory();
 	$error = false;	
 }
 
@@ -46,10 +48,17 @@ if(class_exists(CONFIG)){
     <div class="subhead">
     	<a class="button" href="<?php echo $root.CONFIG::$MGMT; ?>">Manage</a>
     </div>
+    <div class="subhead">
+        <select name="pvrType" size="1" id="pvrType">
+            <option value="cp" selected>Movie</option>
+            <option value="hp" >Music</option>
+            <option value="sb" >Tv Show</option>
+        </select>
+     </div>
     <div style="clear:both"></div>
-    <input type="text" value="Search" id="historySearch" />
+    <input type="text" value="Search" id="historySearch" title="cp" />
     <hr />
-     <div>
+     <div class="history" style="display:none;" id="hp">
         <a name="history"></a>
         <h4>History:</h4>
         <?php
@@ -82,21 +91,75 @@ if(class_exists(CONFIG)){
 		}
 		?>
     </div>
+    <div class="history" id="cp">
+        <a name="history"></a>
+        <h4>History:</h4>
+        <?php
+		if(count($cphistory) ==0){
+			echo "Nothing in History";
+		}
+		else{ 
+			echo "<table style=\"border:0; padding:0; width:80%;\" border=\"0\" cellspacing=\"0\" class=\"sickbeard\">";	
+			foreach($cphistory as $movie) {
+					// show Results
+					echo "<tr class=\"historyTr\">";
+							echo "<td><img style=\"height:100px;\" src='".$movie->getImg()."' /></td>";
+							echo "<td><a  class=\"historyTitle\" target=\"_new\" href=\"".$movie->getUrl()."\" ><b>" . $movie->getName() . "</b></a></td>";
+							echo "<td>".$movie->getStarted()."</td>";
+							echo "<td>".$movie->getGenre()."</td>";
+							echo "<td>".$movie->getStatus()."</td>";
+							
+					echo "</tr>";
+			}
+			echo "</table>";
+		}
+		?>
+    </div>
+    <div style="display:none;" class="history" id="sb">
+        <a name="history"></a>
+        <h4>History:</h4>
+        <?php
+		if(count($sbhistory) ==0){
+			echo "Nothing in History";
+		}
+		else{ 
+			echo "<table style=\"border:0; padding:0; width:80%;\" border=\"0\" cellspacing=\"0\" class=\"sickbeard\">";	
+			foreach($sbhistory as $show) {
+					// show Results
+					echo "<tr class=\"historyTr\">";
+							echo "<td><img style=\"height:100px;\" src='".$show->getImg()."' /></td>";
+							echo "<td><a  class=\"historyTitle\" target=\"_new\" href=\"".$show->getUrl()."\" ><b>" . $show->getName() . "</b></a></td>";
+							echo "<td>".$show->getNextEp()."</td>";
+							echo "<td>".$show->getAirs()."</td>";
+							echo "<td>".$show->getEpStatus()."</td>";
+							echo "<td>".$show->getStatus()."</td>";
+							
+					echo "</tr>";
+			}
+			echo "</table>";
+		}
+		?>
+    </div>
 </div>
 <script type="text/javascript">
 	(function(){
 		$("#historySearch").bind("keyup change",function(e){
 			setTimeout(function(){
 				var val = $("#historySearch").val();
-				if(val != ""){
-					$(".historyTitle").each(function(index, element) {
+				if(val != "" && val != "Search"){
+					$("#" +$("#pvrType").val() + " .historyTitle").each(function(index, element) {
 						if($(element).text().toLowerCase().indexOf(val.toLowerCase()) ==-1){
-							$($(".historyTr")[index]).hide();
+							$($("#" +$("#pvrType").val() + " .historyTr")[index]).hide();
 						}
 						else{
-							$($(".historyTr")[index]).show();
+							$($("#" +$("#pvrType").val() + " .historyTr")[index]).show();
 						}
 					});
+				}
+				else{
+					$(".historyTr").each(function(index, element) {
+                    	$(element).show();
+                	});
 				}
 			},0);
 		});
@@ -113,6 +176,15 @@ if(class_exists(CONFIG)){
 					$("#historySearch").val("");
 				}
 			},0);
+		});
+		$("#pvrType").bind("change", function(e){
+			$(".history").each(function(i, elm){
+				$(this).hide(300);
+			});
+			setTimeout(function(){
+				$("#"+$("#pvrType").val()).show(300);
+				$("#historySearch").trigger("change");
+			},300);
 		});
 	})();
 </script>

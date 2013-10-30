@@ -270,6 +270,153 @@ class CONFIG{
 		LOG::info(__FILE__." Line[".__LINE__."]"."getting HP history - ".$url);
 		return $results;
 	}
+	
+	private function getCPStatusById($statuses, $ind){
+		$ind;
+		if($statuses[$ind-1]->id == $ind){
+			return $statuses[$ind-1]->label;
+		}
+		else{
+			foreach($statuses as $status){
+				if($status->id == $ind){
+					return $statuses[$ind-1]->label;
+				}
+			}
+		}
+	}
+	
+	public function getCPHistory(){
+		 $cp = $this->cp;
+		/*if($this->cp["https"] === true){
+			$url = "https://";
+		}
+		else{
+			$url = "http://";
+		}
+		$cmd="/status.list";
+		$url .= $cp["server"].":".$cp["port"]."/api/".$cp["apikey"].$cmd;
+		LOG::info(__FILE__." Line[".__LINE__."]"."Getting cp status list - ".$url);
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		$resp = curl_exec($ch);
+		curl_close($ch);
+		$statuses = json_decode($resp)->{"list"};
+		
+		if($this->cp["https"] === true){
+			$url = "https://";
+		}
+		else{
+			$url = "http://";
+		}*/
+		$cmd="/movie.list?status=active";
+		$url .= $cp["server"].":".$cp["port"]."/api/".$cp["apikey"].$cmd;
+		LOG::info(__FILE__." Line[".__LINE__."]"."Getting cp wanted list - ".$url);
+		$ch = curl_init($url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		$resp = curl_exec($ch);
+		curl_close($ch);
+		$movies = json_decode($resp)->movies;
+		$respmovies = array();
+		foreach($movies as $movie){
+			$s = new CPRESULT($movie->library->info->imdb, $movie->library->info->titles[0], date("r",$movie->last_edit)); //$movie->library->info->year);
+			$s->setUrl("http://www.imdb.com/title/".$movie->library->info->imdb."/");
+			$s->setAdded(1);
+			$s->setImg($movie->library->info->images->poster[0]);
+			$s->setGenre(implode(", ",$movie->library->info->genres));
+			array_push($respmovies, $s);
+		}
+		return $respmovies;
+	}
+	public function getSBHistory(){
+		$sb = $this->sb;
+		$cmd = "/?cmd=future&type=missed|today|soon";
+		$tvresults = array();
+		if($sb["https"] === true){
+			$getSBShow = "https://";
+		}
+		else{
+			$getSBShow = "http://";
+		}
+		$getSBShow .= $sb["server"].":".$sb["port"]."/api/".$sb["apikey"].$cmd;
+		LOG::info(__FILE__." Line[".__LINE__."]"."Searching for show in sb ".$getSBShow);
+		$ch = curl_init($getSBShow);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_HEADER, 0);
+		$results = curl_exec($ch);
+		curl_close($ch);
+		$shows = json_decode($results)->data->missed;
+		foreach($shows as $show){
+			$s = new SBSTATRESULT($show->tvdbid, $show->show_name, $show->show_status);
+			$s->setUrl("http://thetvdb.com/?tab=series&id=".$show->tvdbid);
+			if($sb["https"] === true){
+				$sbShowImg = "https://";
+			}
+			else{
+				$sbShowImg = "http://";
+			}
+			if(in_array($sb["server"],array("0.0.0.0", "127.0.0.1", "localhost"))){
+				$serv = $_SERVER['HTTP_HOST'];
+			}
+			else{
+				$serv = $sb["server"];
+			}
+			$sbShowImg .= $serv.":".$sb["port"]."/api/".$sb["apikey"]."/?cmd=show.getposter&tvdbid=".$show->tvdbid;
+			$s->setImg($sbShowImg);
+			$s->setAirs($show->airs);
+			$s->setEpName($show->ep_name);
+			$s->setEpStatus("missed");
+			array_push($tvresults, $s);
+		}
+		$shows = json_decode($results)->data->today;
+		foreach($shows as $show){
+			$s = new SBSTATRESULT($show->tvdbid, $show->show_name, $show->show_status);
+			$s->setUrl("http://thetvdb.com/?tab=series&id=".$show->tvdbid);
+			if($sb["https"] === true){
+				$sbShowImg = "https://";
+			}
+			else{
+				$sbShowImg = "http://";
+			}
+			if(in_array($sb["server"],array("0.0.0.0", "127.0.0.1", "localhost"))){
+				$serv = $_SERVER['HTTP_HOST'];
+			}
+			else{
+				$serv = $sb["server"];
+			}
+			$sbShowImg .= $serv.":".$sb["port"]."/api/".$sb["apikey"]."/?cmd=show.getposter&tvdbid=".$show->tvdbid;
+			$s->setImg($sbShowImg);
+			$s->setAirs($show->airs);
+			$s->setEpName($show->ep_name);
+			$s->setEpStatus("today");
+			array_push($tvresults, $s);
+		}
+		$shows = json_decode($results)->data->soon;
+		foreach($shows as $show){
+			$s = new SBSTATRESULT($show->tvdbid, $show->show_name, $show->show_status);
+			$s->setUrl("http://thetvdb.com/?tab=series&id=".$show->tvdbid);
+			if($sb["https"] === true){
+				$sbShowImg = "https://";
+			}
+			else{
+				$sbShowImg = "http://";
+			}
+			if(in_array($sb["server"],array("0.0.0.0", "127.0.0.1", "localhost"))){
+				$serv = $_SERVER['HTTP_HOST'];
+			}
+			else{
+				$serv = $sb["server"];
+			}
+			$sbShowImg .= $serv.":".$sb["port"]."/api/".$sb["apikey"]."/?cmd=show.getposter&tvdbid=".$show->tvdbid;
+			$s->setImg($sbShowImg);
+			$s->setAirs($show->airs);
+			$s->setEpName($show->ep_name);
+			$s->setEpStatus("soon");
+			array_push($tvresults, $s);
+		}
+		return $tvresults;
+	}
 	public function getSabQueue(){
 		if($this->sab["https"] === true){
 			$url = "https://";
