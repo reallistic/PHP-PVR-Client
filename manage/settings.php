@@ -139,6 +139,15 @@
                 <strong>ApiKey:</strong>
                 <input type="text" name="apikey" value="<?php echo $hp['apikey']; ?>" />
                 </td>
+                <td>
+                <strong>Backlog Status:</strong>
+                <select size="1" name="bklog">
+                	<option value="wanted" <?php if($sb["bklog"] == "wanted") echo "selected"; ?>>Wanted</option>
+                    <option value="skipped" <?php if($sb["bklog"] == "skipped") echo "selected"; ?>>Skipped</option>
+                    <option value="archived" <?php if($sb["bklog"] == "archived") echo "selected"; ?>>Archived</option>
+                    <option value="ignored" <?php if($sb["bklog"] == "ignored") echo "selected"; ?>>Ignored</option>
+                </select>
+                </td>
             </tr>
             <tr>
             	<td colspan="2">
@@ -214,6 +223,15 @@
             	<td>
                 <strong>ApiKey:</strong>
                 <input type="text" name="apikey" value="<?php echo $sb['apikey']; ?>" />
+                </td>
+                <td>
+                <strong>Backlog Status:</strong>
+                <select size="1" name="bklog">
+                	<option value="wanted" <?php if($sb["bklog"] == "wanted") echo "selected"; ?>>Wanted</option>
+                    <option value="skipped" <?php if($sb["bklog"] == "skipped") echo "selected"; ?>>Skipped</option>
+                    <option value="archived" <?php if($sb["bklog"] == "archived") echo "selected"; ?>>Archived</option>
+                    <option value="ignored" <?php if($sb["bklog"] == "ignored") echo "selected"; ?>>Ignored</option>
+                </select>
                 </td>
             </tr>
             <tr>

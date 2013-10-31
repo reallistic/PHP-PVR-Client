@@ -31,6 +31,7 @@ if(class_exists(CONFIG)){
 			$to = CONFIG::escape_query($_POST['to']);
 			$from = CONFIG::escape_query($_POST['from']);
 			$sub = CONFIG::escape_query($_POST['subject']);
+			$bklg = CONFIG::escape_query($_POST['bklog']);
 			$error = false;
 			switch($t){
 				case "indexsite":
@@ -99,7 +100,8 @@ if(class_exists(CONFIG)){
 							"apikey"=>$a,
 							"port"=>$port,
 							"enabled"=>$enabled,
-							"https"=>$https
+							"https"=>$https,
+							"bklog"=>$bklg
 						);
 						$conf = new CONFIG;
 						$conf->saveHPConfig($s);
@@ -139,7 +141,8 @@ if(class_exists(CONFIG)){
 							"apikey"=>$a,
 							"port"=>$port,
 							"enabled"=>$enabled,
-							"https"=>$https
+							"https"=>$https,
+							"bklog"=>$bklg
 						);
 						$conf = new CONFIG;
 						$conf->saveSBConfig($s);

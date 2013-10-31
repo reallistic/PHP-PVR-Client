@@ -13,14 +13,16 @@ class CONFIG{
 		"apikey" =>"",
 		"port" => "8181",
 		"enabled" => true,
-		"https" => false
+		"https" => false,
+		"bklog" => "wanted"
 	);
 	private $sb = array(
 		"server" => "0.0.0.0",
 		"apikey" =>"",
 		"port" => "8081",
 		"enabled" => true,
-		"https" => false
+		"https" => false,
+		"bklog" => "wanted"
 	);
 	private $cp = array(
 		"server" => "0.0.0.0",
@@ -79,6 +81,7 @@ class CONFIG{
 				$this->hp["port"] = $s["port"];
 				$this->hp["enabled"] = $s["enabled"];
 				$this->hp["https"] = $s["https"];
+				$this->hp["bklog"] = $s["bklog"];
 				
 				$s= $conf->getSB();
 				$this->sb["server"] = $s["server"];
@@ -86,6 +89,7 @@ class CONFIG{
 				$this->sb["port"] = $s["port"];
 				$this->sb["enabled"] = $s["enabled"];
 				$this->sb["https"] = $s["https"];
+				$this->sb["bklog"] = $s["bklog"];
 				
 				$s= $conf->getCP();
 				$this->cp["server"] = $s["server"];
@@ -167,6 +171,7 @@ class CONFIG{
 		$this->hp["port"] = $s["port"];
 		$this->hp["enabled"] = $s["enabled"];
 		$this->hp["https"] = $s["https"];
+		$this->hp["bklog"] = $s["bklog"];
 		
 		$fp = fopen($sroot.CONFIG::$DBS.CONFIG::$dbfile, 'w+');
 		if(flock($fp, LOCK_EX)) {
@@ -221,6 +226,7 @@ class CONFIG{
 		$this->sb["port"] = $s["port"];
 		$this->sb["enabled"] = $s["enabled"];
 		$this->sb["https"] = $s["https"];
+		$this->sb["bklog"] = $s["bklog"];
 		
 		$fp = fopen($sroot.CONFIG::$DBS.CONFIG::$dbfile, 'w+');
 		if(flock($fp, LOCK_EX)) {
@@ -595,7 +601,7 @@ class CONFIG{
 		else{
 			$url = "http://";
 		}
-		$cmd = "/?cmd=show.addnew&tvdbid=$id";
+		$cmd = "/?cmd=show.addnew&tvdbid=$id&status=".$sb["bklog"];
 		$url .= $sb["server"].":".$sb["port"]."/api/".$sb["apikey"].$cmd;
 		LOG::info(__FILE__." Line[".__LINE__."]"."adding show to sb - ".$url);
 		$this->info= array(true, $url);
