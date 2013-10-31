@@ -142,10 +142,10 @@
                 <td>
                 <strong>Backlog Status:</strong>
                 <select size="1" name="bklog">
-                	<option value="wanted" <?php if($sb["bklog"] == "wanted") echo "selected"; ?>>Wanted</option>
-                    <option value="skipped" <?php if($sb["bklog"] == "skipped") echo "selected"; ?>>Skipped</option>
-                    <option value="archived" <?php if($sb["bklog"] == "archived") echo "selected"; ?>>Archived</option>
-                    <option value="ignored" <?php if($sb["bklog"] == "ignored") echo "selected"; ?>>Ignored</option>
+                	<option value="wanted" <?php if($hp["bklog"] == "wanted") echo "selected"; ?>>Wanted</option>
+                    <option value="skipped" <?php if($hp["bklog"] == "skipped") echo "selected"; ?>>Skipped</option>
+                    <option value="archived" <?php if($hp["bklog"] == "archived") echo "selected"; ?>>Archived</option>
+                    <option value="ignored" <?php if($hp["bklog"] == "ignored") echo "selected"; ?>>Ignored</option>
                 </select>
                 </td>
             </tr>
