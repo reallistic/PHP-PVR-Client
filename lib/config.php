@@ -109,7 +109,9 @@ class CONFIG{
 		else{
 			$this->info = array(true,"initialized config with default settings0<br>");
 		}
-		LOG::info(__FILE__." Line[".__LINE__."]".$this->info[1]);
+		if($this->[1] != "config loaded "){
+			LOG::info(__FILE__." Line[".__LINE__."]".$this->info[1]);
+		}
 	}
 	public function getLastfmApiKey(){
 		return $this->LASTFMAPI;
@@ -271,6 +273,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$results = curl_exec($ch);
 		curl_close($ch);
 		LOG::info(__FILE__." Line[".__LINE__."]"."getting HP history - ".$url);
@@ -321,6 +325,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$resp = curl_exec($ch);
 		curl_close($ch);
 		$movies = json_decode($resp)->movies;
@@ -350,6 +356,8 @@ class CONFIG{
 		$ch = curl_init($getSBShow);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$results = curl_exec($ch);
 		curl_close($ch);
 		$shows = json_decode($results)->data->missed;
@@ -436,6 +444,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$resp = curl_exec($ch);
 		curl_close($ch);
 		return $resp;
@@ -454,6 +464,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$resp = curl_exec($ch);
 		curl_close($ch);
 		return $resp;
@@ -472,6 +484,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$resp = curl_exec($ch);
 		curl_close($ch);
 		return $resp;
@@ -490,6 +504,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$resp = curl_exec($ch);
 		curl_close($ch);
 		if($this->hp["https"] === true){
@@ -504,6 +520,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$resp .= "|".curl_exec($ch);
 		curl_close($ch);
 		return $resp;
@@ -521,6 +539,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$resp = curl_exec($ch);
 		curl_close($ch);
 		if($this->hp["https"] === true){
@@ -535,6 +555,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$resp .= "|".curl_exec($ch);
 		curl_close($ch);
 		return $resp;
@@ -589,6 +611,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$resp = curl_exec($ch);
 		curl_close($ch);
 		return $resp;
@@ -608,6 +632,8 @@ class CONFIG{
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$resp = curl_exec($ch);
 		curl_close($ch);
 		return $resp;
@@ -627,8 +653,11 @@ class CONFIG{
 		$ch = curl_init($getCPMovie);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$results = curl_exec($ch);
 		curl_close($ch);
+
 		$movies = json_decode($results)->movies;
 		foreach($movies as $movie){
 			$s = new CPRESULT($movie->imdb, $movie->titles[0], $movie->year);
@@ -655,6 +684,8 @@ class CONFIG{
 		$ch = curl_init($getSBShow);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 		$results = curl_exec($ch);
 		curl_close($ch);
 		$shows = json_decode($results)->data->results;
@@ -672,6 +703,8 @@ class CONFIG{
 			$ch = curl_init($getSBShowInfo);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_HEADER, 0);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 			$SBShowAdded = curl_exec($ch);
 			curl_close($ch);
 			$SBShowAdded = (json_decode($SBShowAdded)->result == "success");
@@ -709,6 +742,8 @@ class CONFIG{
 							$ch = curl_init($sbshowImgCal);
 							curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 							curl_setopt($ch, CURLOPT_HEADER, 0);
+							curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+							curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 							curl_exec($ch);
 							$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 							$exists = (!($retcode >= 400) || $retcode == 200 ? true: false);
@@ -744,6 +779,8 @@ class CONFIG{
 			$ch = curl_init($getArtistUrl);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_HEADER, 0);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 			$results = curl_exec($ch);
 			curl_close($ch);
 			$results = json_decode($results);
@@ -762,6 +799,8 @@ class CONFIG{
 				$ch = curl_init($getAlbumsUrl);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_HEADER, 0);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 				$artistinfo = curl_exec($ch);
 				curl_close($ch);
 				$artistinfo = json_decode($artistinfo);
@@ -838,6 +877,8 @@ class CONFIG{
 			$ch = curl_init($getArtistUrl);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_HEADER, 0);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 			$results = curl_exec($ch);
 			curl_close($ch);
 			$results = json_decode($results);
@@ -857,6 +898,8 @@ class CONFIG{
 				$ch = curl_init($getAlbumsUrl);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_HEADER, 0);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 				$artistinfo = curl_exec($ch);
 				curl_close($ch);
 				$artistinfo = json_decode($artistinfo);
@@ -913,6 +956,8 @@ class CONFIG{
 			$ch = curl_init($getArtistUrl);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_HEADER, 0);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 			$results = curl_exec($ch);
 			curl_close($ch);
 			$results = json_decode($results);
@@ -931,6 +976,8 @@ class CONFIG{
 				$ch = curl_init($getAlbumsUrl);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_HEADER, 0);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 				$artistinfo = curl_exec($ch);
 				curl_close($ch);
 				$artistinfo = json_decode($artistinfo);

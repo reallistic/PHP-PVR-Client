@@ -1,6 +1,4 @@
 <?php
-$fnm = explode("/",__FILE__);
-$fnm = $fnm[-1];
 class AUTH{
 	//auth token to expire
 	private $username;
@@ -21,7 +19,7 @@ class AUTH{
 	}
 	
 	private function checkAuth($u, $p){
-		global $sroot, $fnm;
+		global $sroot;
 		
 		if(!isset($this->authtoken)){
 			if(is_file($sroot.CONFIG::$DBS.$this->dbfile)){
@@ -61,7 +59,7 @@ class AUTH{
 		return (($this->authtoken == md5($_SERVER['REMOTE_ADDR'].$this->username)) || ($this->authtoken == "confirm" && $c ===true && $this->info[1]=="confirm"));
 	}
 	public function confirm($p){
-		global $sroot, $fnm;
+		global $sroot;
 		
 		if($p !== $this->password){
 			$this->info = array(false, "Passwords don't match");

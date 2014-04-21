@@ -1,6 +1,4 @@
 <?php
-$fnm = explode("/",__FILE__);
-$fnm = $fnm[-1];
 class INDEXSITE{
 	private $name;
 	private $apikey;
@@ -24,7 +22,7 @@ class INDEXSITE{
 		$this->id = $i;
 	}
 	public static function withID($id){
-		global $sroot, $fnm;
+		global $sroot;
 		
 		$response = array();
 		if(is_file($sroot.CONFIG::$DBS.INDEXSITE::$dbfile)){
@@ -75,7 +73,6 @@ class INDEXSITE{
 	}
 	
 	public function makeSearch($q){
-		global $fnm;
 		
 		$cats = implode(',', $this->category);
 		if(is_array($q)){
@@ -98,7 +95,7 @@ class INDEXSITE{
 	}
 	
 	public function saveSite(){
-		global $sroot, $fnm;
+		global $sroot;
 		
 		if(is_file($sroot.CONFIG::$DBS.INDEXSITE::$dbfile)){
 			$inxs = file_get_contents($sroot.CONFIG::$DBS.INDEXSITE::$dbfile);
@@ -127,7 +124,7 @@ class INDEXSITE{
 	}
 	
 	public function delSite(){
-		global $sroot, $fnm;
+		global $sroot;
 		
 		$response = array();
 		if(is_file($sroot.CONFIG::$DBS.INDEXSITE::$dbfile)){

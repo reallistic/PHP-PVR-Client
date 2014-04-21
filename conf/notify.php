@@ -5,7 +5,7 @@ require_once("../bootstrap.php");
 $fnm = explode("/",__FILE__);
 $fnm = $fnm[-1];
 $_SESSION['response'] = "failed";
-if(class_exists(CONFIG)){
+if(class_exists("CONFIG")){
 	$l2 = CONFIG::escape_query($_REQUEST['line2']);
 	$md = CONFIG::escape_query($_REQUEST['method']);
 	$l1 = CONFIG::escape_query($_REQUEST['line1']);

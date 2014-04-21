@@ -4,7 +4,7 @@ $response = false;
 $config = false;
 $query = false;
 require_once("bootstrap.php");
-if(class_exists(CONFIG)){
+if(class_exists("CONFIG")){
 	$config = true;
 	if(isset($_REQUEST['t']) && $_REQUEST['t'] != ""){
 		$t = $_REQUEST['t'];
@@ -106,7 +106,7 @@ if(class_exists(CONFIG)){
 					}
 			}
 		});
-		<?php if($email["enabled"]){ ?>
+		<?php if(isset($email) && $email["enabled"]){ ?>
 			ajaxSendEmail(name, imdbid, "movie", null);
 		<?php } ?>
 	}
@@ -129,7 +129,7 @@ if(class_exists(CONFIG)){
 					}
 			}
 		});
-		<?php if($email["enabled"]){ ?>
+		<?php if(isset($email) && $email["enabled"]){ ?>
 			ajaxSendEmail(name, tvdbid, "TV Show", null);
 		<?php } ?>
 	}
@@ -161,7 +161,7 @@ if(class_exists(CONFIG)){
 				});
 			}
 		});
-		<?php if($email["enabled"]){ ?>
+		<?php if(isset($email) && $email["enabled"]){ ?>
 			ajaxSendEmail(artnm, albname, "music", null);
 		<?php } ?>
 	}
@@ -184,7 +184,7 @@ if(class_exists(CONFIG)){
 				}
 			}
 		});
-		<?php if($email["enabled"]){ ?>
+		<?php if(isset($email) && $email["enabled"]){ ?>
 			ajaxSendEmail(artnm, "*add artist*", "music", null);
 		<?php } ?>
 	}
@@ -221,24 +221,24 @@ if(class_exists(CONFIG)){
             <form <?php if($query === true && $t !="cp") echo 'style="display:none;"'; ?> id="cp" enctype="application/x-www-form-urlencoded" method="post">
             	<input type="hidden" value="cp" name="t" />
                 <label>Find a Movie?
-                <input type="text" name="movie" value="<?php echo $_REQUEST['movie']; ?>" /></label>
+                <input type="text" name="movie" value="<?php if(isset($_REQUEST['movie'])) echo $_REQUEST['movie']; ?>" /></label>
                 <button onClick="doSubmit('cp');" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Search</span></button>
             </form>
             
             <form <?php if($query === false || ($query === true && $t !="hp")) echo 'style="display:none;"'; ?> id="hp" enctype="application/x-www-form-urlencoded" method="post">
             	<input type="hidden" value="hp" name="t" />
                 <label>Find an Artist?
-                <input type="text" name="artist" value="<?php echo $_REQUEST['artist']; ?>" /></label>
+                <input type="text" name="artist" value="<?php if(isset($_REQUEST['artist'])) echo $_REQUEST['artist']; ?>" /></label>
                 and/or
                 <label>Find an Album?
-                <input type="text" name="album" value="<?php echo $_REQUEST['album']; ?>" /></label>
+                <input type="text" name="album" value="<?php if(isset($_REQUEST['album'])) echo $_REQUEST['album']; ?>" /></label>
                 <button onClick="doSubmit('hp');" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Search</span></button>
             </form>
             
             <form <?php if($query === false || ($query === true && $t !="sb")) echo 'style="display:none;"'; ?> id="sb" enctype="application/x-www-form-urlencoded" method="post">
                 <input type="hidden" value="sb" name="t" />
                 <label>Find a Tv Show?
-                <input type="text" name="show" value="<?php echo $_REQUEST['show']; ?>" /></label>
+                <input type="text" name="show" value="<?php if(isset($_REQUEST['show'])) echo $_REQUEST['show']; ?>" /></label>
                 <button onClick="doSubmit('sb');" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Search</span></button>
             </form>
             <br />
@@ -402,9 +402,11 @@ $(function() {
 		$("#results").hide(300);
 		setTimeout(function(){
 			$("#"+$("#pvrType").val()).show(300);
+                        <?php if(isset($t)){ ?>
 			if($("#pvrType").val() == "<?php echo $t; ?>"){
 				$("#results").show(300);
 			}
+                        <?php } ?>
 		},300);
 	});
 	

@@ -6,7 +6,7 @@ $indexers = false;
 require_once("../bootstrap.php");
 $fnm = explode("/",__FILE__);
 $fnm = $fnm[-1];
-if(class_exists(CONFIG)){
+if(class_exists("CONFIG")){
 	$config = true;
 	if(isset($_SESSION['authtoken'])){
 		$at = unserialize($_SESSION['authtoken']);

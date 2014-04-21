@@ -1,4 +1,5 @@
 <?php
+    //CHANGE ME: for non-standard vhosts set the root manually 
 	$root = "";
 	$root = $_SERVER['DOCUMENT_ROOT'];
 	$root = substr(dirname(__FILE__),strlen($root));
@@ -9,7 +10,7 @@
 	$CONFIGFILE = "lib/config.php";
 	require($sroot.$CONFIGFILE);
 	
-	if(class_exists(CONFIG)){
+	if(class_exists("CONFIG")){
 		if ($handle = opendir($sroot.CONFIG::$CLASSES)) {
 			while (false !== ($file = readdir($handle))) {
 				if(is_file($sroot.CONFIG::$CLASSES.$file)

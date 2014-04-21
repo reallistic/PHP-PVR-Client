@@ -2,7 +2,7 @@
 session_start();
 $config = false;
 require_once("../bootstrap.php");
-if(class_exists(CONFIG)){
+if(class_exists("CONFIG")){
 	$config = true;
 	if(isset($_SESSION['authtoken'])){
 		$at = unserialize($_SESSION['authtoken']);
