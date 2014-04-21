@@ -1,13 +1,6 @@
 <?php
 class CONFIG{
-	private $sab = array(
-		"server" => "0.0.0.0",
-		"apikey" =>"",
-		"port" => "8080",
-		"category" => "music",
-		"enabled" => true,
-		"https" => false
-	);
+
 	private $hp = array(
 		"server" => "0.0.0.0",
 		"apikey" =>"",
@@ -63,13 +56,6 @@ class CONFIG{
 			$conf = file_get_contents($sroot.CONFIG::$DBS.CONFIG::$dbfile);
 			$conf = unserialize($conf);
 			if($conf instanceof CONFIG){
-				$s= $conf->getSab();
-				$this->sab["server"] = $s["server"];
-				$this->sab["apikey"] = $s["apikey"];
-				$this->sab["port"] = $s["port"];
-				$this->sab["category"] = $s["category"];
-				$this->sab["enabled"] = $s["enabled"];
-				$this->sab["https"] = $s["https"];
 				$s= $conf->getEmail();
 				$this->email["enabled"] = $s["enabled"];
 				$this->email["to"] = $s["to"];
@@ -133,35 +119,7 @@ class CONFIG{
 		}
 		$_SESSION['response'] = $this->info[1];
 	}
-	public function saveSabConfig($s){
-		global $sroot;
-		
-		if(substr($s["server"],strlen($s["server"])-1) == "/"){
-			$s["server"]=substr($s["server"],0,strlen($s["server"])-1);
-		}
-		//self::$_instance = new self();
-		$this->sab["server"] = $s["server"];
-		$this->sab["apikey"] = $s["apikey"];
-		$this->sab["port"] = $s["port"];
-		$this->sab["category"] = $s["category"];
-		$this->sab["enabled"] = $s["enabled"];
-		$this->sab["https"] = $s["https"];
-		
-		$fp = fopen($sroot.CONFIG::$DBS.CONFIG::$dbfile, 'w+');
-		if(flock($fp, LOCK_EX)) {
-			fwrite($fp, serialize($this));
-			flock($fp, LOCK_UN);
-			fclose($fp);
-			$this->info = array(true, "config saved");
-			LOG::info(__FILE__." Line[".__LINE__."]"."config saved");
-		}
-		else {
-			$this->info = array(false, "file cannot be locked");
-			LOG::error(__FILE__." Line[".__LINE__."]"."file cannot be locked");
-		}
-		$_SESSION['response'] = $this->info[1];
-	}
-	
+
 	public function saveHPConfig($s){
 		global $sroot;
 		
@@ -253,9 +211,6 @@ class CONFIG{
 	}
 	public function getSB(){
 		return $this->sb;
-	}
-	public function getSab(){
-		return $this->sab;
 	}
 	public function getEmail(){
 		return $this->email;
@@ -431,66 +386,7 @@ class CONFIG{
 		}
 		return $tvresults;
 	}
-	public function getSabQueue(){
-		if($this->sab["https"] === true){
-			$url = "https://";
-		}
-		else{
-			$url = "http://";
-		}
-		$url .= $this->sab["server"].":".$this->sab["port"]."/sabnzbd/api?mode=queue&limit=200&output=xml&apikey=".$this->sab["apikey"];
-		LOG::info(__FILE__." Line[".__LINE__."]"."getting sab queue - ".$url);
-		$this->info= array(true, $url);
-		$ch = curl_init($url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HEADER, 0);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-		$resp = curl_exec($ch);
-		curl_close($ch);
-		return $resp;
-	}
-	
-	public function getSabHistory(){
-		if($this->sab["https"] === true){
-			$url = "https://";
-		}
-		else{
-			$url = "http://";
-		}
-		$url .= $this->sab["server"].":".$this->sab["port"]."/sabnzbd/api?mode=history&output=xml&limit=200&apikey=".$this->sab["apikey"];
-		LOG::info(__FILE__." Line[".__LINE__."]"."getting sab history - ".$url);
-		$this->info= array(true, $url);
-		$ch = curl_init($url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HEADER, 0);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-		$resp = curl_exec($ch);
-		curl_close($ch);
-		return $resp;
-	}
-	
-	public function sendToSab($l, $n){
-		if($this->sab["https"] === true){
-			$url = "https://";
-		}
-		else{
-			$url = "http://";
-		}
-		$url .= $this->sab["server"].":".$this->sab["port"]."/sabnzbd/api?mode=addurl&name=".$l."&nzbname=".$n."&apikey=".$this->sab["apikey"]."&cat=".$this->sab["category"];
-		LOG::info(__FILE__." Line[".__LINE__."]"."sending nzb to sab - ".$url);
-		$this->info= array(true, $url);
-		$ch = curl_init($url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HEADER, 0);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-		$resp = curl_exec($ch);
-		curl_close($ch);
-		return $resp;
-	}
-	
+
 	public function sendToHP($l){
 		if($this->hp["https"] === true){
 			$url = "https://";
@@ -722,41 +618,6 @@ class CONFIG{
 				$serv = $sb["server"];
 			}
 			$sbShowImg .= $serv.":".$sb["port"]."/api/".$sb["apikey"]."/?cmd=show.getbanner&tvdbid=".$show->tvdbid;
-			if(false && $SBShowAdded === false){
-				$sbshowImgCacheCal = "/home/sabgrab/.sickbeard/cache/images/".$show->tvdbid.".banner.jpg";
-				if(file_exists($sbshowImgCacheCal)){
-					$exists = true;
-					$sbShowImg = $sbshowImgCacheCal;
-				}
-				else{
-					$sbshowImgCal = "http://www.thetvdb.com/banners/graphical/".$show->tvdbid."-g.jpg";
-					$ch = curl_init($sbshowImgCal);
-					curl_setopt($ch, CURLOPT_NOBODY, true);
-					curl_exec($ch);
-					$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-					$exists = (!($retcode >= 400) || $retcode == 200 ? true: false);
-					curl_close($ch);
-					if($exists  === false){
-						for($i =2; $i<4 && $exists === false; $i++){
-							$sbshowImgCal ="http://www.thetvdb.com/banners/graphical/".$show->tvdbid."-g$i.jpg";
-							$ch = curl_init($sbshowImgCal);
-							curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-							curl_setopt($ch, CURLOPT_HEADER, 0);
-							curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-							curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-							curl_exec($ch);
-							$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-							$exists = (!($retcode >= 400) || $retcode == 200 ? true: false);
-							curl_close($ch);
-						}
-					}
-					if($exists  === true){
-						$image = file_get_contents($sbshowImgCal);
-						file_put_contents($sbshowImgCacheCal,$image);
-					}
-				}
-				
-			}
 			$s->setImg($sbShowImg);
 			array_push($tvresults, $s);
 		}

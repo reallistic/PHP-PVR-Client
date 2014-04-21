@@ -26,20 +26,11 @@ if(class_exists(CONFIG)){
 		if(!$at->checkToken() && $at->info[1] !="confirm"){
 			$url = $root.CONFIG::$SCRIPTS.CONFIG::$LGOUTSCRIPT;
 			header("location: $url");
-
+			exit;
 		}
 		elseif($at->checkToken()){
-			if(is_file($sroot.CONFIG::$DBS.INDEXSITE::$dbfile)){
-				$indexers = true; //check for indexers was good
-				$inxs = file_get_contents($sroot.CONFIG::$DBS.INDEXSITE::$dbfile);
-				$indexsites = unserialize($inxs);
-				if(is_array($indexsites)){
-					$indexersprop = true; //check for indexsites class was good
-				}
-			}
 			
 			$conf = new CONFIG;
-			$sab = $conf->getSab();
 			$hp = $conf->getHP();
 			$cp = $conf->getCP();
 			$sb = $conf->getSB();
@@ -120,10 +111,6 @@ else{
 	if($config === false){
 		$notify=true;
 		echo "<p>Improper installation. Missing config.php</p>";
-	}
-	if(isset($at) && $indexersprop === false){
-		$notify = true;
-		echo "<p>Please add an index site</p>";
 	}
 if($notify){ ?>
    	<script type="text/javascript">

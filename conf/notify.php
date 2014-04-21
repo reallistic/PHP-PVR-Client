@@ -19,16 +19,6 @@ if(class_exists("CONFIG")){
 	$conf = new CONFIG;
 	LOG::info(__FILE__." Line[".__LINE__."]"." notify script: in $md");	
 	switch($md){
-		case "sab":
-			if($l != "" && $n != ""){	
-				$resp = $conf->sendToSab($l, $n);
-				$_SESSION['response'] = $resp;
-			}
-			else{
-				LOG::error(__FILE__." Line[".__LINE__."]"." SCRIPT attempt to access a script without proper post");
-				$url = $root.CONFIG::$SCRIPTS.CONFIG::$LGOUTSCRIPT;
-			}
-		break;
 		case "email":
 			if($l1 != "" && $l2 != ""){
 				$resp = $conf->sendToMail($l1, $l2, $t);
