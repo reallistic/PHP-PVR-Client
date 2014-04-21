@@ -2,7 +2,8 @@ PHP-PVR-Client
 ======================
 
 PHP based application to allow client access to all of your favorite media providers!
-Supports: Headphones, Couchpotato, and Sickbeard. (More coming soon)
+Supports: Headphones, Couchpotato, and Sickbeard. (More coming soon)<br>
+[Live Demo](https://rose-llc.com/dump/PHP-PVR-Client/)
 
 ##Features:<br>
  - Search and add music artists/albums to Headphones
