@@ -62,7 +62,7 @@ class LOG{
 			//self::info(__FILE__." Line[".__LINE__."]"." looking for file ".$sroot.CONFIG::$LOGS.LOG::$LOGFILENAME.$i);
 			if(is_file($sroot.CONFIG::$LOGS.LOG::$LOGFILENAME)){
 				//self::info(__FILE__." Line[".__LINE__."]"." found file ".$sroot.CONFIG::$LOGS.LOG::$LOGFILENAME.$i);
-				$filecont = file_get_contents($sroot.CONFIG::$LOGS.LOG::$LOGFILENAME.$i);
+				$filecont = file_get_contents($sroot.CONFIG::$LOGS.LOG::$LOGFILENAME);
 				$logs = array_merge($logs,explode("\r\n",$filecont));
 				$logs = array_reverse($logs);
 			}	

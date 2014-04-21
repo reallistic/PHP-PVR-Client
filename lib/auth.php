@@ -55,7 +55,7 @@ class AUTH{
 		}
 		LOG::info(__FILE__." Line[".__LINE__."]".$this->info[1]);
 	}
-	public function checkToken($c){
+	public function checkToken($c = false){
 		return (($this->authtoken == md5($_SERVER['REMOTE_ADDR'].$this->username)) || ($this->authtoken == "confirm" && $c ===true && $this->info[1]=="confirm"));
 	}
 	public function confirm($p){

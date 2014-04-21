@@ -79,14 +79,14 @@ else{
 			$i++;
 			if(count($logs) == $i)
 				break;
-
-			if (strpos($log,'[INFO]') !== false) {
+			$level = "log_info";
+			if (strpos($log,'INFO') !== false) {
 				$level = "log_info";
 			}
-			elseif (strpos($log,'[WARN]') !== false) {
+			elseif (strpos($log,'WARN') !== false) {
 				$level = "log_warn";
 			}
-			elseif (strpos($log,'[ERROR]') !== false) {
+			elseif (strpos($log,'ERROR') !== false) {
 				$level = "log_error";
 			}
 			if($i % 2 == 1){ 
