@@ -109,7 +109,7 @@ class CONFIG{
 		else{
 			$this->info = array(true,"initialized config with default settings0<br>");
 		}
-		if($this->[1] != "config loaded "){
+		if($this->info[1] != "config loaded "){
 			LOG::info(__FILE__." Line[".__LINE__."]".$this->info[1]);
 		}
 	}
