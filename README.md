@@ -23,7 +23,17 @@ Supports: Headphones, Couchpotato, and Sickbeard. (More coming soon)
  You can obtain one by going to http://www.last.fm/api.
 
 ===
+##Screenshots:<br>
+**Settings**<br>
+![Administrative settings page](https://rose-llc.com/dump/PHP-PVR-Client/html/settingsSS.jpg)<br>
+**Sickbeard Search**<br>
+![Sickbeard Search Results](https://rose-llc.com/dump/PHP-PVR-Client/html/tvsearchSS.jpg)<br>
+**Headphones Search**<br>
+![Headphones Search Results](https://rose-llc.com/dump/PHP-PVR-Client/html/musicsearchSS.jpg)<br>
+**Couchpotato Search**<br>
+![Couchpotato Search Results](https://rose-llc.com/dump/PHP-PVR-Client/html/moviesearchSS.jpg)<br>
+===
 ## TODO:<br>
- Create subscription based notification service
- Create custom headphones repo to eliminate the need for a last.fm api key
- Create responsive layout to facillitate mobile app.
+ - Create subscription based notification service
+ - Create custom headphones repo to eliminate the need for a last.fm api key
+ - Create responsive layout to facillitate mobile app.
