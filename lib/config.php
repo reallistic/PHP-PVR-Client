@@ -824,6 +824,7 @@ class CONFIG{
 					$cmd = "artist.getinfo&mbid=".$resultObj->id;
 					$curl = curl_init();
 					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
+					LOG::info(__FILE__." Line[".__LINE__."]"."calling lastfm api ".$getArtistInfo);
 					curl_setopt_array($curl, array(
 						CURLOPT_RETURNTRANSFER => 1,
 						CURLOPT_URL => $getArtistInfo,
@@ -837,6 +838,7 @@ class CONFIG{
 					$cmd = "artist.gettopalbums&mbid=".$resultObj->id;
 					$curl = curl_init();
 					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
+					LOG::info(__FILE__." Line[".__LINE__."]"."calling lastfm api ".$getArtistInfo);
 					curl_setopt_array($curl, array(
 						CURLOPT_RETURNTRANSFER => 1,
 						CURLOPT_URL => $getArtistInfo,
@@ -895,6 +897,7 @@ class CONFIG{
 					$getAlbumsUrl = "http://";
 				}
 				$getAlbumsUrl .= $hp["server"].":".$hp["port"]."/api?cmd=$cmd&apikey=".$hp["apikey"];
+				LOG::info(__FILE__." Line[".__LINE__."]"."getting hp album ".$getAlbumsUrl);
 				$ch = curl_init($getAlbumsUrl);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -920,6 +923,7 @@ class CONFIG{
 					$cmd = "album.getinfo&mbid=".$resultObj->albumid;
 					$curl = curl_init();
 					$getAlbumInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
+					LOG::info(__FILE__." Line[".__LINE__."]"."calling lastfm api ".$getAlbumInfo);
 					curl_setopt_array($curl, array(
 						CURLOPT_RETURNTRANSFER => 1,
 						CURLOPT_URL => $getAlbumInfo,
@@ -1003,6 +1007,7 @@ class CONFIG{
 					$cmd = "artist.getinfo&mbid=".$resultObj->id;
 					$curl = curl_init();
 					$getArtistInfo = "http://ws.audioscrobbler.com/2.0/?method=$cmd&api_key=$lastfmapikey&format=json";
+					LOG::info(__FILE__." Line[".__LINE__."]"."calling lastfm api ".$getArtistInfo);
 					curl_setopt_array($curl, array(
 						CURLOPT_RETURNTRANSFER => 1,
 						CURLOPT_URL => $getArtistInfo,
