@@ -12,7 +12,7 @@ Supports: Headphones, Couchpotato, and Sickbeard. (More coming soon)<br>
  - Search for and send NZBs directly to sabnzbd
  - Password protected administration and logging
  - Displays headphones history, sickbeard's upcoming shows, and couchpotato's wanted list
- - Per show/artist per user subscription based notifications via twitter
+ - Per show/artist per user subscription based notifications via twitter (comming soon)
 
 ===
 ## Installation:<br>
